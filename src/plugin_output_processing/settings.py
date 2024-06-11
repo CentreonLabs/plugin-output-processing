@@ -6,7 +6,6 @@ import openai
 from pydantic import BaseModel, model_validator
 from loguru import logger
 
-OPENAI_MODELS = [model["id"] for model in openai.models.list().model_dump()["data"]]
 
 class ProviderError(Exception):
     pass
@@ -25,10 +24,10 @@ class Settings(BaseModel):
     @model_validator(mode="after")
     def check_model(self):
         """Make sure all model parameters are set and valid.
-        
-        As for today, we support 2 providers, OpenAI and Ollama. If ollama is configured
+
+        As of today, we support 2 providers, OpenAI and Ollama. If ollama is configured
         and can be called, it will be used as the default provider. If not, OpenAI will
-        be used if the API key is set.
+        be used if the API key is set. Otherwise, the service will not start.
         """
         providers = []
         try:
@@ -39,12 +38,15 @@ class Settings(BaseModel):
                     f"Found ollama models: {ollama_models}, default: {ollama_default}"
                 )
                 providers.append("ollama")
-            self.url = f"http://{os.environ.get("OLLAMA_HOST", "localhost")}:11434"
+            self.url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
         except Exception:
             pass
 
         if os.environ.get("OPENAI_API_KEY"):
             logger.debug("OpenAI API key found.")
+            openai_models = [
+                model["id"] for model in openai.models.list().model_dump()["data"]
+            ]
             providers.append("openai")
             openai_default = "gpt-4o"
 
@@ -62,7 +64,7 @@ class Settings(BaseModel):
         elif self.provider == "openai":
             if not self.model:
                 self.model = openai_default
-            if self.model not in OPENAI_MODELS:
+            if self.model not in openai_models:
                 raise ProviderError(f"OpenAI model {self.model} not found.")
         logger.debug(f"Using {self.provider} with {self.model}.")
 
