@@ -1,12 +1,22 @@
 import os
 
-import openai
 import yaml
 from litellm import completion
 from loguru import logger
 from uuid import UUID
+from fastapi import status, HTTPException
 
 from .settings import Settings
+
+TEMPLATE_PROMPT = """
+Explain the following output coming from a Centreon plugin: {output}. 
+Here are some information about the monitored ressource,
+Type: {type}
+Name: {name}
+Description: {description}
+Describe mains reasons causing this output and suggest the better way to solve it.
+Limit your answer to {length} words and answer in {language}.
+"""
 
 
 class PluginProcessor:
@@ -23,8 +33,8 @@ class PluginProcessor:
         provider = self.settings.provider
 
         alter = prompt != self.prompts[uuid]
-        logger.info(
-            f"PROMPT: {prompt}, ALTER: {alter}, UUID: {uuid}, PROVIDER: {provider}, MODEL: {model}"
+        logger.debug(
+            f"PROMPT: {prompt}, ALTER: {alter}, UUID: {uuid}, PROVIDER: {provider}, MODEL: {model}"  # noqa E501
         )
 
         try:
@@ -34,44 +44,41 @@ class PluginProcessor:
                 temperature=self.settings.temperature,
                 messages=[
                     {"role": "system", "content": self.settings.role},
-                    {"role": "user", "content": self.prompt},
+                    {"role": "user", "content": prompt},
                 ],
             )
 
-        except openai.APIError as e:
-            content = e.message
-            logger.error(
-                f"MESSAGE: {e.message}, CODE: {e.status_code}, UUID: {uuid}, PROVIDER: {provider}, MODEL: {model}"
+        except Exception as e:
+            msg = f"""Could not provide a completion:
+            - model: {provider}/{model}
+            - base_url: {self.settings.url}
+            - temperature: {self.settings.temperature}
+            - role: {self.settings.role},
+            - prompt: {prompt},
+            - error: {e}
+            """
+
+            logger.error(e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg
             )
 
-        else:
-            content = response.choices[0].message.content
+        content = response.choices[0].message.content
 
-            logger.info(
-                f"EXPLANATION: {content}, PROVIDER: {provider}, MODEL: {model}, UUID: {uuid}"
-            )
+        logger.debug(
+            f"EXPLANATION: {content}, PROVIDER: {provider}, MODEL: {model}, UUID: {uuid}"  # noqa E501
+        )
 
-        finally:
-            return content
+        return content
 
     def get_prompt(
         self, type: str, name: str, output: str, description: str, uuid: UUID
     ):
         """Convert request into a prompt."""
 
-        logger.info(f"TYPE: {type}, NAME: {name}, OUTPUT: {output}, UUID: {uuid}")
+        logger.debug(f"TYPE: {type}, NAME: {name}, OUTPUT: {output}, UUID: {uuid}")
 
-        template = """
-            Explain the following output coming from a Centreon plugin: {output}. 
-            Here are some information about the monitored ressource,
-            Type: {type}
-            Name: {name}
-            Description: {description}
-            Describe mains reasons causing this output and suggest the better way to solve it.
-            Limit your answer to {length} words and answer in {language}.
-            """
-
-        prompt = template.format(
+        prompt = TEMPLATE_PROMPT.format(
             output=output,
             type=type,
             name=name,
@@ -82,12 +89,10 @@ class PluginProcessor:
 
         self.prompts[uuid] = prompt
 
-        logger.info(f"PROMPT: {prompt}, UUID: {uuid}")
-
         return prompt
 
     def _configure(self):
-        """Load params from config file and create one if it not exists."""
+        """Load params from config file and create one if it doesn't exists."""
 
         # Default path to the root of the project if not provided.
         default_path = os.path.realpath(
