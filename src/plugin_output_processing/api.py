@@ -1,6 +1,5 @@
 from typing import Literal
 
-import uvicorn
 from fastapi import FastAPI
 from uuid import uuid4, UUID
 
@@ -28,8 +27,3 @@ def send_prompt(prompt: str, uuid: UUID):
 
     response = processor.send_prompt(prompt, uuid)
     return response
-
-
-if __name__ == "__main__":
-
-    uvicorn.run(app, host="0.0.0.0")
