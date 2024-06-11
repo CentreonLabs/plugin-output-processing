@@ -1,181 +1,155 @@
+[![Python](https://img.shields.io/badge/Python-3%2E11-blue?logo=python)](https://devguide.python.org/versions/) &nbsp;
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-green?logo=openai)](https://platform.openai.com/docs/models/gpt-4o) &nbsp;
+[![Ollama](https://img.shields.io/badge/Local%20LLM-Ollama-green?logo=github)](https://github.com/ollama/ollama) &nbsp;
+[![experimental](https://img.shields.io/badge/stability-experimental-red)](http://github.com/badges/stability-badges) &nbsp;
+![interface](https://img.shields.io/badge/Interface-API-darkgreen?logo=fastapi)
+
 # **P**lugin **O**utput **P**rocessing (POP)
 
+Leverage LLMs to give an **explanation** of a Centreon **plugin output**.
 
-This **new feature aims** at giving an **explanation** of a **plugin output** at the request of the user.
+## Examples
 
-From a technical viewpoint, this **Python project** defines a **REST API**, designed with the **FastAPI** framework, taking as request a **plugin output** as well as some optional information on the monitored ressource where the output comes from, and giving a **relevant explanation in natural language** of it based on a underlying **LLM**. 
+### Example 1 using OpenAI's GPT-4o
 
-## Install & Start
+Output of a service monitoring a CPU:
 
-1. Get source code.
+> UNKNOWN: SNMP Table Request: Cant get a single value.
+
+Explanation given using _GPT-4o_: 
+> The output indicates that the Centreon plugin is unable to retrieve values from the SNMP table for CPU monitoring. Common causes include:
+> 
+>   1. Incorrect SNMP community string or credentials.\
+>   2. SNMP service not running on the target device.
+>   3. Network issues preventing SNMP communication.
+>   4. Incorrect OIDs or SNMP version mismatch.
+> 
+> To resolve, verify SNMP configuration on the target device, ensure network connectivity, use correct SNMP community strings, and confirm matching SNMP versions between Centreon and the target device.
+
+### Example 2 using Local model Qwen2-0.5B
+
+Output of a service monitoring a database partioning: 
+
+> CRITICAL: Partitions for table 'centreon_storage.data_bin' are not up to date (current retention forward in days: 0) - Partitions for table 'centreon_storage.logs' are not up to date (current retention forward in days: 0) - Partitions for table 'centreon_storage.log_archive_service' are not up to date (current retention forward in days: 0) - Partitions for table 'centreon_storage.log_archive_host' are not up to date (current retention forward in days: 0)
+
+Explanation given using a local model _Qwen2-0.5B_:
+
+> Output from a Centreon plugin is indicative of an issue where partitions for the table 'centreon_storage.data_bin' are no longer up to date, causing the retention forward rate to be set to zero. This can result from various reasons including:
+>   * The storage provider does not support or implement the requested retention policies.
+>   * There has been a failure in data backup and recovery processes.
+>   * The database server is running out of memory.
+> 
+> Solving this issue might involve improving the implementation of these pieces of software such as:
+>   * Adding more capacity to the storage servers
+>   * Optimizing database processing to minimize memory usage
+>   * Increasing the CPU load on the storage servers
+>   * Reversing the retention forward rates if possible
+> 
+> In summary, it is recommended to identify and resolve the underlying issues first, then implementing solutions accordingly. This will improve the reliability of data backup and recovery processes without compromising storage performance or causing more downtime.
+
+## Getting started
+
+### Using docker and a local model
+
+This method does not require any API key to be set or any configuration file to be provided.
+A local model will be used to generate the explanations (Qwen2-0.5B) which can run on CPU.
+At least 1GB of RAM is required to run the container.
+
+```bash
+git clone https://github.com/centreonlabs/plugin-output-processing.git
+
+cd plugin-output-processing/docker
+
+docker-compose up
 ```
-git clone https://github.com/centreon/centreon-datascience.git
-cd centreon-datascience/plugin-output-processing
+
+After the container is up, you can try the API at `http://localhost:8000/docs`.
+You can also use curl to try the API:
+
+```bash
+curl -X 'GET' \
+  'http://127.0.0.1:8000/explain?type=service&output=UNKNOWN%3A%20SNMP%20Table%20Request%3A%20Cant%20get%20a%20single%20value.&name=n%2Fa&description=cpu'
 ```
 
-2. Optionnaly, export your OpenAI key if you plan using OpenAI models.
-```
-export OPENAI_API_KEY=<KEY>
-```
+### Using docker and OpenAI
 
-3. Optionnaly, export a configuration path
-```
-export POP_CONFIG_PATH=...          # configuration file path
-````
+This method requires an [OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key) to be set as an environment variable: `OPENAI_API_KEY`.
 
-Default values for this variable is shown in the table below.
-
-| Variable         | Poetry                                 | Docker Compose           |
-|------------------|----------------------------------------|--------------------------|
-|`POP_CONFIG_PATH` | `ConfigPath('pop','centreon','.yaml')` | `/root/.pop/config.yaml` |
-
-### Poetry
-
-```
-poetry install 
-poetry run python3 -m plugin_output_processing.api
+```bash
+docker run -p 8000:8000 --rm -e centreonlabs-pop -e OPENAI_API_KEY=$OPENAI_API_KEY centreonlabs/pop
 ```
 
-### Docker
+After the container is up, you can try the API the same way as the previous section.
 
+### Running the API locally
+
+To run the API locally, you'll either need an OpenAI API key or a local model installed via [ollama](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key).
+
+```bash
+git clone
+cd plugin-output-processing
+
+# Create a virtual environment (need at least python 3.10)
+python -m venv .venv
+source .venv/bin/activate
+
+# Install the dependencies
+poetry install
+
+# Run the API
+poetry run uvicorn src.plugin_output_processing.api:app --reload
 ```
-docker compose up
+
+The API will be using the first model it can find on the ollama API, or the OpenAI API key if it doesn't find a local model.
+See the next section to know how to configure the API to use a specific model.
+
+## Usage
+
+The API is a simple HTTP API that can be used to generate explanations for Centreon plugin outputs.
+It can be accessed at `http://localhost:8000/docs`.
+
+The API has a single endpoint that can be accessed with a GET request at `/explain`.
+The endpoint requires the following query parameters:
+
+| Parameter     | Type             | Default | Description           |
+| ------------- | ---------------- | ------- | --------------------- |
+| `type`        | `host` `service` |         | Ressource type        |
+| `name`        | `str`            | `n/a`   | Ressource name        |
+| `output`      | `str`            | `n/a`   | Plugin output         |
+| `description` | `str`            | `n/a`   | Ressource description |
+
+
+## Configuration
+
+The API can be configured using a YAML file. 
+The default configuration file is located at the root of the project and is named `config.yaml`.
+The location of the configuration file can be changed by setting the environment variable `POP_CONFIG_PATH`.
+
+If the configuration file is not found, the file will be created.
+Here is an example of a configuration file:
+
+```yaml
+language: English
+length: 100
+model: gpt-4o
+provider: openai
+role: You are a Centreon professional assistant.
+temperature: 1
+url: null
 ```
-
-## Use
-
-1. Open your browser at the **URL** printed in the terminal.
-
-2. Pass following information as **query parameters**.
-
-| Parameter    | Type             | Default  | Description           |
-|--------------|------------------|----------|-----------------------|
-| `type`       | `host` `service` |          | Ressource type        |
-| `name`       | `str`            | `n/a`    | Ressource name        |
-| `output`     | `str`            | `n/a`    | Plugin output         |
-| `description`| `str`            | `n/a`    | Ressource description |
- 
-
-## Settings
-
-Path to the configuration file is printed when application start.
-Configuration is loaded at each API call. Therefore, settings can be updated during runtime. 
-
 
 | Parameter     | Type                         | Default                                     | Description        |
-|---------------|------------------------------|---------------------------------------------|--------------------|
-| `provider`    | `openai` `ollama`            | `openai`                                    | LLM provider       |
-| `model`       | `str`                        | `gpt-4o`                                    | LLM model          |
+| ------------- | ---------------------------- | ------------------------------------------- | ------------------ |
+| `provider`    | `openai` `ollama`            |                                             | LLM provider       |
+| `model`       | `str`                        |                                             | LLM model          |
 | `temperature` | `[0-2]`                      | `1`                                         | LLM creativity     |
 | `role`        | `str`                        | `You are a Centreon professional assistant` | LLM role           |
 | `language`    | `English` `French` `Italian` | `English`                                   | Answer language    |
 | `length`      | `int`                        | `100`                                       | Answer words limit |
 
 The `model` parameter must be one of those available for the selected `provider`.
-If not, the `model` is automatically set to the default provider model.
 
-| Provider | Default          | Models                                         |
-|----------|------------------|------------------------------------------------|
-| `openai` | `gpt-4o`         | `gpt-3.5-turbo` `gpt-4` `gpt-4-turbo` `gpt-4o` |
-| `ollama` | `ollama/mistral` | `ollama/mistral`                               |
+For OpenAI, any models available on the [OpenAI API](https://platform.openai.com/docs/models) can be used (only text to text models).
 
-### Local LLMs
-
-Before choosing `ollama` as LLM provider, check that desired model is already installed with the followig command: 
-```
-ollama list
-``` 
-
-If not, install it with the command:
-```
-ollama pull <MODEL>
-```
-List of Ollama models [here](https://ollama.com/library).
-
-## Example
-
-### Host
-
-#### Query
-```
-output: CRITICAL - 10.24.10.89: rta nan, lost 100%
-name: siem-elastic-node-1-prod-root-ec2
-type: host
-```
-#### Request URL   
-```
-http://127.0.0.1:8000/?output=CRITICAL%20-%2010.24.10.89%3A%20rta%20nan%2C%20lost%20100%25&name=siem-elastic-node-1-prod-root-ec2&description=n%2Fa&type=host
-```
-
-#### Prompt
-```
-Explain the following output coming from a Centreon plugin : CRITICAL - 10.24.10.89: rta nan, lost 100%.
-Here are some informations about the monitored ressources :
-Type: host
-Name: siem-elastic-node-1-prod-root-ec2
-Description: n/a
-Describe mains reasons causing this output and suggest the better way to solve it.
-Limit your answer to 100 words and answer in English.
-```
-
-#### Explanation
-```
-The output indicates that the host, 10.24.10.89 (siem-elastic-node-1-prod-root-ec2), is not reachable as Round Trip Average (RTA) time is not measurable (nan) and 100% packet loss. This might be caused by network issues, the host being down, or firewall settings blocking ICMP requests. Recommended solutions involve checking the network connectivity, ensuring the host is up and running, and verifying if firewall settings permit ICMP traffic.
-```
-
-### Service
-
-#### Query
-```
-output: CRITICAL: No active swap
-name: ACP-PASOL-601
-description: swap
-type: service
-```
-#### Request URL   
-```
-http://127.0.0.1:8000/?output=CRITICAL%3A%20No%20active%20sawp&name=ACP-PASOL-601&description=swap&type=service
-```
-
-#### Prompt
-```
-Explain the following output coming from a Centreon plugin : CRITICAL: No active sawp.
-Here are some informations about the monitored ressources :
-Type: service
-Name: ACP-PASOL-601
-Description: swap
-Describe mains reasons causing this output and suggest the better way to solve it.
-Limit your answer to 100 words and answer in French.
-```
-
-#### Explanation
-```
-Cette sortie indique qu'il n'y a pas de mémoire swap active sur le service ACP-PASOL-601. Cela pourrait être dû à une configuration incorrecte ou à une absence de mémoire swap assignée. Pour résoudre ce problème, vérifiez les paramètres de la mémoire swap de votre système. S'il n'y a pas de mémoire swap configurée, créez-en une. Si elle est configurée mais toujours inactive, essayez de la reactivez.
-```
-
-## Deployment
-
-From the root of the project, execute the cmd `poe deploy` to build and publish the POP image on [Centreon Labs](https://hub.docker.com/u/centreondocker).
-
-## Dependencies
-
-- API
-    - [FastAPI](https://fastapi.tiangolo.com/)
-    - [Uvicorn](https://www.uvicorn.org/)
-- LLM
-    - [OpenAI](https://openai.com/)
-    - [LiteLLM](https://litellm.ai/)
-- Configuration
-    - [PyYAML](https://pyyaml.org/)
-    - [Pydantic](https://docs.pydantic.dev/latest/)
-    - [ConfigPath](https://pypi.org/project/config-path/)
-- Logging
-    - [Loguru](https://loguru.readthedocs.io/en/stable/index.html)
-
-
-
-
-
-
-
-
+For ollama, the models available can be listed with the command `ollama list`.
+See the [ollama documentation](https://ollama.com/) for more information to install or install a model.
