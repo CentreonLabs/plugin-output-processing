@@ -1,0 +1,23 @@
+services:
+  pop:
+    container_name: pop
+    build: .
+    ports:
+      - 8000:8000
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - POP_CONFIG_PATH=${POP_CONFIG_PATH:-/root/.pop/config.yaml}
+      - OLLAMA_HOST=${OLLAMA_HOST:-ollama}
+    volumes:
+      - pop:/root/.pop
+  ollama:
+    container_name: ollama
+    image: ollama/ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  pop:
+  ollama:
