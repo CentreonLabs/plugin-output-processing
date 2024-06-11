@@ -1,7 +1,6 @@
 services:
   pop:
-    container_name: pop
-    build: .
+    image: centreonlabs/pop
     ports:
       - 8000:8000
     environment:

@@ -1,3 +1,19 @@
+# plugin-output-processing
+# Copyright (C) 2024  Centreon
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from typing import Literal
 
 from fastapi import FastAPI
@@ -10,7 +26,7 @@ app = FastAPI()
 processor = PluginProcessor()
 
 
-@app.get("/get")
+@app.get("/get", include_in_schema=False)
 def get_prompt(
     type: Literal["host", "service"],
     output: str = "n/a",
@@ -27,7 +43,7 @@ def get_prompt(
     return prompt, uuid
 
 
-@app.get("/send")
+@app.get("/send", include_in_schema=False)
 def send_prompt(prompt: str, uuid: UUID):
     return processor.send_prompt(prompt, uuid)
 
