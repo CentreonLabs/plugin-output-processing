@@ -2,7 +2,14 @@ import os
 from typing import Literal
 
 import ollama
+import openai
 from pydantic import BaseModel, model_validator
+from loguru import logger
+
+OPENAI_MODELS = [model["id"] for model in openai.models.list().model_dump()["data"]]
+
+class ProviderError(Exception):
+    pass
 
 
 class Settings(BaseModel):
@@ -17,37 +24,46 @@ class Settings(BaseModel):
 
     @model_validator(mode="after")
     def check_model(self):
+        """Make sure all model parameters are set and valid.
+        
+        As for today, we support 2 providers, OpenAI and Ollama. If ollama is configured
+        and can be called, it will be used as the default provider. If not, OpenAI will
+        be used if the API key is set.
+        """
+        providers = []
+        try:
+            ollama_models = [model["name"] for model in ollama.list()["models"]]
+            ollama_default = ollama_models[0] if ollama_models else None
+            if ollama_default:
+                logger.debug(
+                    f"Found ollama models: {ollama_models}, default: {ollama_default}"
+                )
+                providers.append("ollama")
+            self.url = f"http://{os.environ.get("OLLAMA_HOST", "localhost")}:11434"
+        except Exception:
+            pass
 
-        opeanai_models = ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo", "gpt-4o"]
-        openai_default = "gpt-4o"
+        if os.environ.get("OPENAI_API_KEY"):
+            logger.debug("OpenAI API key found.")
+            providers.append("openai")
+            openai_default = "gpt-4o"
 
-        ollama_models = [model["name"] for model in ollama.list()["models"]]
-        ollama_default = ollama_models[0] if ollama_models else None
-        ollama_host = os.environ.get("OLLAMA_HOST", "localhost")
+        if not providers:
+            raise ProviderError("Neither OpenAI nor Ollama can be called.")
 
-        providers = {
-            "openai": {
-                "models": opeanai_models,
-                "default": openai_default,
-                "url": None,
-            },
-            "ollama": {
-                "models": ollama_models,
-                "default": ollama_default,
-                "url": f"http://{ollama_host}:11434",
-            },
-        }
+        if not self.provider:
+            self.provider = providers[0]
 
-        if self.provider:
-
-            available_models = providers[self.provider]["models"]
-
-            if self.model not in available_models:
-                self.model = providers[self.provider]["default"]
-
-            self.url = providers[self.provider]["url"]
-
-        else:
-            self.model = None
+        if self.provider == "ollama":
+            if not self.model:
+                self.model = ollama_default
+            if self.model not in ollama_models:
+                raise ProviderError(f"Ollama model {self.model} not found.")
+        elif self.provider == "openai":
+            if not self.model:
+                self.model = openai_default
+            if self.model not in OPENAI_MODELS:
+                raise ProviderError(f"OpenAI model {self.model} not found.")
+        logger.debug(f"Using {self.provider} with {self.model}.")
 
         return self
