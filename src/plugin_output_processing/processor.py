@@ -1,9 +1,7 @@
 import os
-import sys
 
 import openai
 import yaml
-from config_path import ConfigPath
 from litellm import completion
 from loguru import logger
 from uuid import UUID
@@ -16,19 +14,13 @@ class PluginProcessor:
     def __init__(self):
 
         self._configure()
-        self._init_logger()
         self.prompts = {}
 
     def send_prompt(self, prompt: str, uuid: UUID) -> str:
         """Send resquest the LLM and handle its response."""
 
-        self._configure()
-
         model = self.settings.model
         provider = self.settings.provider
-
-        if not model:
-            return "No model provided."
 
         alter = prompt != self.prompts[uuid]
         logger.info(
@@ -67,8 +59,6 @@ class PluginProcessor:
     ):
         """Convert request into a prompt."""
 
-        self._configure()
-
         logger.info(f"TYPE: {type}, NAME: {name}, OUTPUT: {output}, UUID: {uuid}")
 
         template = """
@@ -99,31 +89,22 @@ class PluginProcessor:
     def _configure(self):
         """Load params from config file and create one if it not exists."""
 
-        conf_path = ConfigPath("pop", "centreon", ".yaml")
-        default_path = conf_path.saveFilePath(mkdir=True)
+        # Default path to the root of the project if not provided.
+        default_path = os.path.realpath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "config.yaml")
+        )
         path = os.environ.get("POP_CONFIG_PATH", default_path)
 
         try:
             with open(path, "r") as file:
                 config = yaml.safe_load(file)
+                if not config:
+                    raise FileNotFoundError
                 self.settings = Settings(**config)
-                print(f"Configuration loaded from : {path}\n")
+                logger.debug(f"Configuration loaded from: {path}\n")
 
         except FileNotFoundError:
             with open(path, "w") as file:
                 self.settings = Settings()
                 yaml.safe_dump(self.settings.model_dump(), file)
-                print(f"Configuration created at : {path}\n")
-
-    def _init_logger(self):
-        """Configure logging to stderr."""
-
-        # remove default configuration
-        logger.remove()
-
-        # define our configuration
-        logger.add(
-            sink=sys.stderr,
-            colorize=True,
-            format="<green>{time:YYYY-MM-DD at HH:mm:ss}</green> {level} <level>{message}</level>",
-        )
+                logger.debug(f"Configuration created at: {path}\n")
