@@ -119,10 +119,13 @@ class PluginProcessor:
         try:
             with open(path, "r") as file:
                 config = yaml.safe_load(file)
-                if not config:
-                    raise FileNotFoundError
-                self.settings = Settings(**config)
-                logger.debug(f"Configuration loaded from: {path}\n")
+                try:
+                    assert isinstance(config, dict)
+                except AssertionError as e:
+                    raise Exception(f"Configuration not valid.")
+                else:
+                    self.settings = Settings(**config)
+                    logger.debug(f"Configuration loaded from: {path}\n")
 
         except FileNotFoundError:
             with open(path, "w") as file:
