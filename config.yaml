@@ -1,7 +1,0 @@
-language: English
-length: 100
-model: gpt-4o
-provider: openai
-role: You are a Centreon professional assistant.
-temperature: 1
-url: null

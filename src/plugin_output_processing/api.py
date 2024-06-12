@@ -60,5 +60,5 @@ def explain(
     This is a combination of the get and send endpoints.
     """
     uuid = uuid4()
-    prompt = processor.get_prompt(type, output, name, description, uuid)
+    prompt = processor.get_prompt(type, name, output, description, uuid)
     return processor.send_prompt(prompt, uuid)
