@@ -34,4 +34,4 @@ COPY docker/log_conf.yaml log_conf.yaml
 EXPOSE 8000
 
 # Running command:
-CMD [ "uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "plugin_output_processing.api:app" ]
+CMD [ "poetry","run","uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "plugin_output_processing.api:app" ]
