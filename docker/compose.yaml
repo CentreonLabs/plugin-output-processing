@@ -1,20 +1,27 @@
+
+
 services:
+
   pop:
-    image: centreonlabs/pop
+    container_name: api
+    #image: centreonlabs/pop
+    build:
+      context: ..
+      dockerfile: Dockerfile
     ports:
       - 8000:8000
     environment:
-      - POP_CONFIG_PATH=${POP_CONFIG_PATH:-/root/.pop/config.yaml}
-      - OLLAMA_HOST=${OLLAMA_HOST:-ollama}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - POP_CONFIG_PATH=/root/.pop/config.yaml
+      - OLLAMA_HOST=ollama
     volumes:
-      - ./start_pop.sh:/root/start_pop.sh
       - pop:/root/.pop
     networks:
       - pop
-    entrypoint: ["/root/start_pop.sh"]
     depends_on:
-      - ollama
-    command: ["uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "plugin_output_processing.api:app"]
+      init-ollama:
+        condition: service_completed_successfully
+
   ollama:
     container_name: ollama
     image: ollama/ollama
@@ -24,10 +31,25 @@ services:
       - ollama:/root/.ollama
     networks:
       - pop
+    healthcheck:
+      test: "ollama"
+      interval: 2s
+      timeout: 5s
+      retries: 5
+  
+  init-ollama:
+    image: alpine/curl:latest
+    command: curl -s -X POST http://ollama:11434/api/pull -d {\"name\":\"qwen2:0.5b\"}
+    networks:
+      - pop
+    depends_on:
+      ollama:
+        condition: service_healthy
 
 volumes:
   pop:
   ollama:
+
 
 networks:
   pop:
