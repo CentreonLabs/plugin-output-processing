@@ -39,7 +39,9 @@ def get_prompt(
     being sent to the LLM.
     """
     uuid = uuid4()
-    prompt = processor.get_prompt(type, output, name, description, uuid)
+    prompt = processor.get_prompt(
+        type=type, name=name, output=output, description=description, uuid=uuid
+    )
     return prompt, uuid
 
 
