@@ -112,7 +112,7 @@ class PluginProcessor:
 
         # Default path to the root of the project if not provided.
         default_path = os.path.realpath(
-            os.path.join(os.path.dirname(__file__), "..", "..", "config.yaml")
+            os.path.join(os.path.dirname(__file__), "..", "config.yaml")
         )
         path = os.environ.get("POP_CONFIG_PATH", default_path)
 
@@ -130,5 +130,5 @@ class PluginProcessor:
         except FileNotFoundError:
             with open(path, "w") as file:
                 self.settings = Settings()
-                yaml.safe_dump(self.settings.model_dump(), file)
+                yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
                 logger.debug(f"Configuration created at: {path}\n")
