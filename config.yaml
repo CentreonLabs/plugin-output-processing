@@ -1,0 +1,7 @@
+language: English
+length: 100
+model: mistral:latest
+provider: ollama
+role: You are a Centreon professional assistant.
+temperature: 1
+url: http://localhost:11434
