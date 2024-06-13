@@ -22,16 +22,15 @@ COPY poetry.lock pyproject.toml /code/
 RUN poetry install --no-dev --no-interaction --no-ansi
 
 # Copy the code:
-COPY src/plugin_output_processing plugin_output_processing
+COPY plugin_output_processing /code/plugin_output_processing
 
-ENV POP_CONFIG_PATH=config.yaml
 ENV LOGURU_LEVEL=INFO
 
 # Copy the log configuration file:
-COPY docker/log_conf.yaml log_conf.yaml
+COPY log.yaml log.yaml
 
 # Exposing port:
 EXPOSE 8000
 
 # Running command:
-CMD [ "poetry","run","uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "plugin_output_processing.api:app" ]
+CMD [ "poetry","run","uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log.yaml", "plugin_output_processing.api:app" ]
