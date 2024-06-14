@@ -153,3 +153,5 @@ For OpenAI, any models available on the [OpenAI API](https://platform.openai.com
 
 For ollama, the models available can be listed with the command `ollama list`.
 See the [ollama documentation](https://ollama.com/) for more information to install or install a model.
+
+_NOTES_: If the configuration is changed, the API must be restarted to apply the changes.
