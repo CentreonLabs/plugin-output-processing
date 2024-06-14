@@ -36,8 +36,13 @@ services:
   
   init-ollama:
     container_name: init-ollama
-    image: alpine/curl:latest
-    command: curl -s -X POST http://ollama:11434/api/pull -d {\"name\":\"qwen2:0.5b\"}
+    image: badouralix/curl-jq:latest
+    command: sh -c 
+      "
+      if [ $(curl http://ollama:11434/api/tags | jq -r '.models | length') -eq 0 ]; then
+        curl -s -X POST http://ollama:11434/api/pull -d '{\"name\":\"qwen2:0.5b\"}';
+      fi
+      "
     networks:
       - pop
     depends_on:
