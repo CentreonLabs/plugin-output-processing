@@ -44,7 +44,7 @@ class Settings(BaseModel):
         and can be called, it will be used as the default provider. If not, OpenAI will
         be used if the API key is set. Otherwise, the service will not start.
         """
-        for provider in [Ollama(self.url), OpenAI()]:
+        for provider in [Ollama(), OpenAI()]:
             if self.provider and provider.name != self.provider:
                 continue
             if provider.available:

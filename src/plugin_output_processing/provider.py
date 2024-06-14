@@ -17,30 +17,31 @@ class Provider:
     available: bool
 
     def get_model(self, model) -> str:
-        if self.available:
-            if not model:
-                logger.warning(f"Model not set for {self.name}. Using default.")
-                model = self.default
-            if model not in self.models:
-                logger.warning(f"Model {self.model} not found in {self.name} models.")
-                model = self.default
-            return model
-        raise ProviderError(f"{self.name} provider not available.")
+
+        if not model:
+            logger.warning(f"Model not set for {self.name}. Using default.")
+            model = self.default
+
+        if model not in self.models:
+            logger.warning(f"Model {model} not found in {self.name} models.")
+            model = self.default
+
+        return model
 
 
 class Ollama(Provider):
 
     name = "ollama"
 
-    def __init__(self, url: str = None) -> None:
-        if not url:
-            url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
-        self.url = url
+    def __init__(self) -> None:
+
+        self.url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
         self.models = self._list_models()
         self.default = self.models[0] if self.models else None
         self.available = self.models != []
 
     def _list_models(self) -> list[str]:
+
         try:
             return [model["name"] for model in ollama.list()["models"]]
         except Exception:
@@ -59,7 +60,8 @@ class OpenAI(Provider):
         self.models = self._list_models()
 
     def _list_models(self) -> list[str]:
+
         if not self.available:
             logger.debug("OpenAI provider not available.")
             return []
-        return [model["id"] for model in openai.models.list().model_dump()["data"]]
+        return [model.id for model in openai.models.list()]
