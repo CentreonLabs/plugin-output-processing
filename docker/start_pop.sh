@@ -20,7 +20,7 @@ set -e
 set -x
 
 # Install curl
-apt-get update && apt-get install -y curl
+apt-get update && apt-get install -y curl jq
 
 # Wait until the ollama service is fully up
 until curl -s http://ollama:11434 >/dev/null; do
@@ -28,8 +28,10 @@ until curl -s http://ollama:11434 >/dev/null; do
     sleep 5
 done
 
-# Run the necessary command in the ollama container
-curl -X POST http://ollama:11434/api/pull -d '{"name": "qwen2:0.5b"}'
+# Download a model if no model is present
+if [ $(curl http://localhost:11434/api/tags | jq -r '.models | length') -eq 0 ]; then
+    curl -X POST http://ollama:11434/api/pull -d '{"name": "qwen2:0.5b"}'
+fi
 
 # Start the pop service
 exec "$@"
