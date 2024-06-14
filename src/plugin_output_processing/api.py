@@ -15,12 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import Literal
+from uuid import UUID, uuid4
 
 from fastapi import FastAPI
-from uuid import uuid4, UUID
 
 from .processor import PluginProcessor
-
 
 app = FastAPI()
 processor = PluginProcessor()

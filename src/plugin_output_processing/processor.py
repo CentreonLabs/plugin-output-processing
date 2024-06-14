@@ -15,12 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from uuid import UUID
 
 import yaml
+from fastapi import HTTPException, status
 from litellm import completion
 from loguru import logger
-from uuid import UUID
-from fastapi import status, HTTPException
 
 from .settings import Settings
 
@@ -119,6 +119,9 @@ class PluginProcessor:
         try:
             with open(path, "r") as file:
                 config = yaml.safe_load(file)
+                # If the file is empty, the yaml loader returns None.
+                # If a user create a configuration file with no content,
+                # the default settings will be used.
                 if not config:
                     raise FileNotFoundError
                 self.settings = Settings(**config)
