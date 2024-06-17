@@ -34,9 +34,10 @@ services:
 
   init-ollama:
     container_name: pop-init-ollama
-    image: badouralix/curl-jq:latest
+    image: alpine/curl:latest
     command: sh -c 
       "
+      apk update && apk add --no-cache curl jq;
       if [ $(curl http://ollama:11434/api/tags | jq -r '.models | length') -eq 0 ]; then
         curl -s -X POST http://ollama:11434/api/pull -d '{\"name\":\"qwen2:0.5b\"}';
       fi
