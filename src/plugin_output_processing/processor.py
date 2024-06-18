@@ -56,6 +56,7 @@ class PluginProcessor:
         try:
             response = completion(
                 model=f"{provider}/{model}",
+                base_url=self.settings.url,
                 temperature=self.settings.temperature,
                 messages=[
                     {"role": "system", "content": self.settings.role},

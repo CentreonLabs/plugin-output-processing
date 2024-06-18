@@ -34,6 +34,7 @@ class Settings(BaseModel):
     length: int = 100
     language: Literal["English", "French", "Italian"] = "English"
     role: str = "You are a Centreon professional assistant."
+    url: str = None
 
     @model_validator(mode="after")
     def check_model(self):
@@ -49,6 +50,7 @@ class Settings(BaseModel):
             if provider.available:
                 self.provider = provider.name
                 self.model = provider.get_model(self.model)
+                self.url = provider.url
                 logger.debug(
                     f"Provider set to {self.provider} with model {self.model}."
                 )

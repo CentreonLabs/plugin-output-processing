@@ -30,6 +30,7 @@ class Provider:
     name: str
     models: list[str] = []
     available: bool
+    url: str
 
     def get_model(self, model) -> str:
         if not model:
@@ -44,6 +45,7 @@ class Provider:
 class Ollama(Provider):
 
     name = "ollama"
+    url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
 
     def __init__(self) -> None:
         self.models = self._list_models()
