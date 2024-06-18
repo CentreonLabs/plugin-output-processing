@@ -3,7 +3,7 @@ name: pop
 services:
   pop:
     image: centreonlabs/pop
-    container_name: pop-api
+    container_name: api
     ports:
       - 8000:8000
     environment:
@@ -18,7 +18,7 @@ services:
         condition: service_completed_successfully
     
   ollama:
-    container_name: pop-ollama
+    container_name: ollama
     image: ollama/ollama
     ports:
       - 11434:11434
@@ -28,7 +28,7 @@ services:
       - pop
 
   init-ollama:
-    container_name: pop-init-ollama
+    container_name: init-ollama
     image: centreonlabs/curl-jq:latest
     command: sh -c 
       "
