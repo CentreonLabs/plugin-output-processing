@@ -17,15 +17,13 @@ class Provider:
     available: bool
 
     def get_model(self, model) -> str:
-        if self.available:
-            if not model:
-                logger.warning(f"Model not set for {self.name}. Using default.")
-                model = self.default
-            if model not in self.models:
-                logger.warning(f"Model {self.model} not found in {self.name} models.")
-                model = self.default
-            return model
-        raise ProviderError(f"{self.name} provider not available.")
+        if not model:
+            logger.warning(f"Model not set for {self.name}. Using default.")
+            model = self.default
+        if model not in self.models:
+            logger.warning(f"Model {model} not found in {self.name} models.")
+            model = self.default
+        return model
 
 
 class Ollama(Provider):
