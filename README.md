@@ -60,7 +60,7 @@ git clone https://github.com/centreonlabs/plugin-output-processing.git
 
 cd plugin-output-processing/docker
 
-docker-compose up
+docker compose --profile ollama up
 ```
 
 After the container is up, you can try the API at `http://localhost:8000/docs`.
@@ -71,15 +71,37 @@ curl -X 'GET' \
   'http://127.0.0.1:8000/explain?type=service&output=UNKNOWN%3A%20SNMP%20Table%20Request%3A%20Cant%20get%20a%20single%20value.&name=n%2Fa&description=cpu'
 ```
 
+> [!TIP]
+> The `--profile ollama` option is used to start the container with the local model.
+> If you already have an ollama instance running, you can remove this option, just make sure `OLLAMA_HOST` is set.
+
 ### Using docker and OpenAI
 
 This method requires an [OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key) to be set as an environment variable: `OPENAI_API_KEY`.
 
 ```bash
-docker run -p 8000:8000 --rm -e centreonlabs-pop -e OPENAI_API_KEY=$OPENAI_API_KEY centreonlabs/pop
+docker compose up
 ```
 
 After the container is up, you can try the API the same way as the previous section.
+
+> [!WARNING]
+> Note that the OpenAI API is only used if no local model is found. 
+> If you want to use the OpenAI API, you must unset the `OLLAMA_HOST` if it exists and can reach an ollama instance.
+
+> [!CAUTHION]
+> If you want to switch between providers (OpenAI to Ollama or vice versa), you must change the configuration file or removing it.
+
+```bash
+# Example to switch from OpenAI to Ollama
+
+docker compose down
+
+docker volume rm pop_pop
+
+# We need to recreate the network because ollama will start first.
+docker compose --profile ollama up --force-recreate
+```
 
 ### Running the API locally
 
