@@ -58,7 +58,7 @@ At least 1GB of RAM is required to run the container.
 ```bash
 git clone https://github.com/centreonlabs/plugin-output-processing.git
 
-cd plugin-output-processing/docker
+cd plugin-output-processing
 
 docker compose --profile ollama up
 ```
@@ -80,6 +80,8 @@ curl -X 'GET' \
 This method requires an [OpenAI API key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key) to be set as an environment variable: `OPENAI_API_KEY`.
 
 ```bash
+export OPENAI_API_KEY=...
+
 docker compose up
 ```
 
@@ -157,7 +159,6 @@ model: gpt-4o
 provider: openai
 role: You are a Centreon professional assistant.
 temperature: 1
-url: null
 ```
 
 | Parameter     | Type                         | Default                                     | Description        |
