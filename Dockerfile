@@ -28,7 +28,7 @@ ENV POP_CONFIG_PATH=config.yaml
 ENV LOGURU_LEVEL=INFO
 
 # Copy the log configuration file:
-COPY docker/log_conf.yaml log_conf.yaml
+COPY docker_log_conf.yaml log_conf.yaml
 
 # Exposing port:
 EXPOSE 8000

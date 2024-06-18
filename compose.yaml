@@ -1,5 +1,6 @@
-services:
+name: pop
 
+services:
   pop:
     image: centreonlabs/pop
     container_name: pop-api
