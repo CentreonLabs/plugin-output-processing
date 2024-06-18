@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "plugin-output-processing"
+version = "0.1.0"
+description = "REST API taking a plugin output as request and providing an explanation of it thanks to LLMs"
+authors = ["Grégory Leventoux <gleventoux@centreon.com>", "Denis Roussel <droussel@centreon.com>"]
+maintainers = ["Denis Roussel <droussel@centreon.com>"]
+readme = "README.md"
+license = "AGPL-3.0"
+
+[tool.poetry.dependencies]
+python      = "^3.10"
+fastapi     = "^0.109.0"
+litellm     = "^1.35.0"
+loguru      = "^0.7.0"
+ollama      = "^0.2.0"
+openai      = "^1.10.0"
+pydantic    = "^2.0.0"
+pyyaml      = "^6.0.0"
+uvicorn     = "^0.27.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

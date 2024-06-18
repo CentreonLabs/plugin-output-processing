@@ -1,0 +1,57 @@
+name: pop
+
+services:
+
+  api:
+    container_name: api
+    image: centreonlabs/pop
+    ports:
+      - 8000:8000
+    environment:
+      - POP_CONFIG_PATH=${POP_CONFIG_PATH:-/root/.pop/config.yaml}
+      - OLLAMA_HOST=ollama
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - pop:/root/.pop
+    networks:
+      - pop
+    depends_on:
+      init-ollama:
+        condition: service_completed_successfully
+        required: false
+    
+  ollama:
+    container_name: ollama
+    image: ollama/ollama
+    profiles:
+      - ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - pop
+
+  init-ollama:
+    container_name: init-ollama
+    image: centreonlabs/curl-jq:latest
+    profiles: 
+      - ollama
+    command: sh -c 
+      "
+      if [ $$(curl http://ollama:11434/api/tags | jq -r '.models | length') -eq 0 ]; then
+        curl -s -X POST http://ollama:11434/api/pull -d '{\"name\":\"qwen2:0.5b\"}';
+      fi
+      "
+    networks:
+      - pop
+    depends_on:
+      ollama:
+        condition: service_started
+
+volumes:
+  pop:
+  ollama:
+
+networks:
+  pop:
