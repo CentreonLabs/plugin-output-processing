@@ -9,15 +9,13 @@ services:
       - POP_CONFIG_PATH=${POP_CONFIG_PATH:-/root/.pop/config.yaml}
       - OLLAMA_HOST=${OLLAMA_HOST:-ollama}
     volumes:
-      - ./start_pop.sh:/root/start_pop.sh
       - pop:/root/.pop
     networks:
       - pop
-    entrypoint: ["/root/start_pop.sh"]
     depends_on:
-      - ollama
-    command: ["uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "plugin_output_processing.api:app"]
-
+      init-ollama:
+        condition: service_completed_successfully
+    
   ollama:
     container_name: pop-ollama
     image: ollama/ollama
@@ -27,12 +25,20 @@ services:
       - ollama:/root/.ollama
     networks:
       - pop
-    healthcheck:
-      test: "ollama"
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
+
+  init-ollama:
+    container_name: pop-init-ollama
+    image: centreonlabs/curl-jq:latest
+    command: sh -c 
+      "
+      if [ $$(curl http://ollama:11434/api/tags | jq -r '.models | length') -eq 0 ]; then
+        curl -s -X POST http://ollama:11434/api/pull -d '{\"name\":\"qwen2:0.5b\"}';
+      fi
+      "
+    networks:
+      - pop
+    depends_on:
+      - ollama
 
 volumes:
   pop:
