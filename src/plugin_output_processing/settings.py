@@ -30,7 +30,6 @@ class Settings(BaseModel):
 
     provider: Literal["openai", "ollama"] | None = None
     model: str | None = None
-    url: str | None = None
     temperature: float = 1
     length: int = 100
     language: Literal["English", "French", "Italian"] = "English"
@@ -44,13 +43,12 @@ class Settings(BaseModel):
         and can be called, it will be used as the default provider. If not, OpenAI will
         be used if the API key is set. Otherwise, the service will not start.
         """
-        for provider in [Ollama(self.url), OpenAI()]:
+        for provider in [Ollama(), OpenAI()]:
             if self.provider and provider.name != self.provider:
                 continue
             if provider.available:
                 self.provider = provider.name
                 self.model = provider.get_model(self.model)
-                self.url = provider.url
                 logger.debug(
                     f"Provider set to {self.provider} with model {self.model}."
                 )

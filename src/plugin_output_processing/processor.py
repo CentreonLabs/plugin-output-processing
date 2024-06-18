@@ -56,7 +56,6 @@ class PluginProcessor:
         try:
             response = completion(
                 model=f"{provider}/{model}",
-                base_url=self.settings.url,
                 temperature=self.settings.temperature,
                 messages=[
                     {"role": "system", "content": self.settings.role},
@@ -67,7 +66,6 @@ class PluginProcessor:
         except Exception as e:
             msg = f"""Could not provide a completion:
             - model: {provider}/{model}
-            - base_url: {self.settings.url}
             - temperature: {self.settings.temperature}
             - role: {self.settings.role},
             - prompt: {prompt},

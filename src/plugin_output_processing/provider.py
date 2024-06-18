@@ -29,7 +29,6 @@ class Provider:
 
     name: str
     models: list[str] = []
-    url: str = None
     available: bool
 
     def get_model(self, model) -> str:
@@ -46,10 +45,7 @@ class Ollama(Provider):
 
     name = "ollama"
 
-    def __init__(self, url: str = None) -> None:
-        if not url:
-            url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
-        self.url = url
+    def __init__(self) -> None:
         self.models = self._list_models()
         self.default = self.models[0] if self.models else None
         self.available = self.models != []
