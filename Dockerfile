@@ -24,7 +24,6 @@ RUN poetry install --no-dev --no-interaction --no-ansi
 # Copy the code:
 COPY src/plugin_output_processing plugin_output_processing
 
-ENV POP_CONFIG_PATH=config.yaml
 ENV LOGURU_LEVEL=INFO
 
 # Copy the log configuration file:
