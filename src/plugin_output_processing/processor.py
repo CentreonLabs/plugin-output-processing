@@ -68,6 +68,7 @@ class PluginProcessor:
             msg = f"""Could not provide a completion:
             - model: {provider}/{model}
             - temperature: {self.settings.temperature}
+            - base_url: {self.settings.url}
             - role: {self.settings.role},
             - prompt: {prompt},
             - error: {e}
@@ -129,5 +130,5 @@ class PluginProcessor:
         except FileNotFoundError:
             with open(path, "w") as file:
                 self.settings = Settings()
-                yaml.safe_dump(self.settings.model_dump(), file)
+                yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
                 logger.debug(f"Configuration created at: {path}\n")

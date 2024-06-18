@@ -34,7 +34,7 @@ class Settings(BaseModel):
     length: int = 100
     language: Literal["English", "French", "Italian"] = "English"
     role: str = "You are a Centreon professional assistant."
-    url: str = None
+    url: str | None = None
 
     @model_validator(mode="after")
     def check_model(self):

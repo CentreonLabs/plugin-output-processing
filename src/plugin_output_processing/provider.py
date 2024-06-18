@@ -30,7 +30,7 @@ class Provider:
     name: str
     models: list[str] = []
     available: bool
-    url: str
+    url: str = None
 
     def get_model(self, model) -> str:
         if not model:
@@ -74,4 +74,4 @@ class OpenAI(Provider):
         if not self.available:
             logger.debug("OpenAI provider not available.")
             return []
-        return [model["id"] for model in openai.models.list().model_dump()["data"]]
+        return [model.id for model in openai.models.list()]
