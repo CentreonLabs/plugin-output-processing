@@ -12,7 +12,10 @@ ENV PYTHONFAULTHANDLER=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
 # System deps:
-RUN pip install "poetry==$POETRY_VERSION"
+# - curl: required to check ollama repository if ollama profile is used.
+RUN apt-get -y update && \
+    apt-get install -y curl jq  && \
+    pip install "poetry==$POETRY_VERSION"
 
 # Copy only requirements to cache them in docker layer
 WORKDIR /code
@@ -27,7 +30,7 @@ COPY src/plugin_output_processing plugin_output_processing
 ENV LOGURU_LEVEL=INFO
 
 # Copy the log configuration file:
-COPY docker_log_conf.yaml log_conf.yaml
+COPY docker/docker_log_conf.yaml log_conf.yaml
 
 # Exposing port:
 EXPOSE 8000

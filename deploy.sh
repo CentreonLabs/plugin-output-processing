@@ -6,7 +6,7 @@ NAME=pop
 TAG=$(poetry version -s)
 
 # Build the image
-docker build -t $NAME:$TAG .
+docker build -t $NAME:$TAG -f docker/Dockerfile .
 
 # Tag the image
 REGISTRY=centreondocker
