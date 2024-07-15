@@ -38,10 +38,10 @@ done
 
 if [ $SECONDS -ge 3 ]; then
     if [ -z "${OPENAI_API_KEY}" ]; then
-        echo "Ollama is not available, using openai model"
-    else
         echo "Nor ollama or openai model available, exiting..."
         exit 1
+    else
+        echo "Ollama is not available, using openai model"
     fi
 else
     # If a model already exists on ollama, we don't need to pull one and the first one listed will be used
