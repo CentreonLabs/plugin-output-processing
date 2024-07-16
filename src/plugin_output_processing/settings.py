@@ -14,12 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from typing import Literal
 
 from loguru import logger
 from pydantic import BaseModel, model_validator
 
-from .provider import Ollama, OpenAI
+from .provider import OLLAMA_NAME, OPENAI_NAME, Ollama, OpenAI, Provider
+
+# Disable traceback in case of error, cleaner logs especially for REST API
+sys.tracebacklimit = 0
 
 
 class ProviderError(Exception):
@@ -44,18 +48,49 @@ class Settings(BaseModel):
         and can be called, it will be used as the default provider. If not, OpenAI will
         be used if the API key is set. Otherwise, the service will not start.
         """
-        for provider in [Ollama(), OpenAI()]:
-            if self.provider and provider.name != self.provider:
-                continue
-            if provider.available:
-                self.provider = provider.name
-                self.model = provider.get_model(self.model)
-                self.url = provider.url
-                logger.debug(
-                    f"Provider set to {self.provider} with model {self.model}."
+        if self.provider == OLLAMA_NAME or self.provider is None:
+            ollama = Ollama(self.model)
+            if ollama.available:
+                return self.set_provider(ollama)
+            if self.provider is not None:
+                logger.warning(
+                    f"Ollama provider not available, falling back to {OPENAI_NAME}."
                 )
-                return self
+                self.provider = None
 
-        raise ProviderError(
-            f"No models could be found with configuration: provider={self.provider}, model={self.model}"
-        )
+        if self.provider == OPENAI_NAME or self.provider is None:
+            openai = OpenAI(self.model)
+            if openai.available:
+                return self.set_provider(openai)
+            # If OpenAI is set in the configuration but not available, ollama would not
+            # have been tried yet. So by recursing, we can try to use ollama as a fallback.
+            if self.provider is not None:
+                logger.warning(
+                    f"OpenAI provider not available, falling back to {OLLAMA_NAME}."
+                )
+                self.provider = None
+                return self.check_model()
+
+        msg = "None of the providers are available."
+        logger.error(msg)
+        raise ProviderError(msg)
+
+    def set_provider(self, provider: Provider):
+        logger.debug(f"Provider set to {provider.name} with model {provider.model}.")
+        self.provider = provider.name
+        self.model = provider.model
+        self.url = provider.url
+        return self
+
+    def to_dict(self):
+        base_dict = {
+            "provider": self.provider,
+            "model": self.model,
+            "temperature": self.temperature,
+            "length": self.length,
+            "language": self.language,
+            "role": self.role,
+        }
+        if self.url is not None:
+            base_dict["url"] = self.url
+        return base_dict
