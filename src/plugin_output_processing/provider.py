@@ -82,13 +82,13 @@ class OpenAI(Provider):
     model = "gpt-4o"
 
     def __init__(self, model: str = None) -> None:
-        self.available = "OPENAI_API_KEY" in os.environ
         self.model = self.fetch_model(model)
+        self.available = self.model is not None
 
     def fetch_model(self, model: str | None = None) -> str | None:
-        if not self.available:
+        try:
+            list_models = openai.models.list()
+        except openai.APIConnectionError:
             logger.debug(f"{self.name} is not available.")
             return None
-
-        list_models = [m.id for m in openai.models.list()]
         return self.get_model(list_models, model, self.model)

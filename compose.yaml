@@ -13,13 +13,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - pop:/root/.pop
-      - type: bind
-        source: docker/entrypoint_api.sh
-        target: /root/.pop/entrypoint.sh
     networks:
       - pop
-    entrypoint: ["/root/.pop/entrypoint.sh"]
-    command: [ "uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "plugin_output_processing.api:app" ]
     
   ollama:
     container_name: ollama
