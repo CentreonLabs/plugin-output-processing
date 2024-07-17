@@ -82,15 +82,3 @@ class Settings(BaseModel):
         self.url = provider.url
         return self
 
-    def to_dict(self):
-        base_dict = {
-            "provider": self.provider,
-            "model": self.model,
-            "temperature": self.temperature,
-            "length": self.length,
-            "language": self.language,
-            "role": self.role,
-        }
-        if self.url is not None:
-            base_dict["url"] = self.url
-        return base_dict
