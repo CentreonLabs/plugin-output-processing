@@ -34,20 +34,20 @@ class Provider:
     available: bool = False
     url: str = None
     model: str
+    list_models: list[str]
+    default_model: str = None
 
     def get_model(
         self,
-        list_models: list[str],
         model: str | None = None,
-        default_model: str | None = None,
     ) -> str:
-        if default_model is None:
-            default_model = list_models[0]
+        if self.default_model is None:
+            self.default_model = self.list_models[0]
         if model is None:
-            return default_model
-        if model not in list_models:
+            return self.default_model
+        if model not in self.list_models:
             logger.warning(f"{model} not found in model list, using default instead.")
-            return default_model
+            return self.default_model
         return model
 
     def __init__(self, model: str = None) -> None:
@@ -76,21 +76,21 @@ class Ollama(Provider):
             logger.info("Beware, this will take some time.")
             ollama.pull(small_model)
             return small_model
-        list_models = [m["name"] for m in models]
-        return self.get_model(list_models, model)
+        self.list_models = [m["name"] for m in models]
+        return self.get_model(model)
 
 
 class OpenAI(Provider):
     name = OPENAI_NAME
-    model = "gpt-4o"
+    default_model = "gpt-4o"
 
     def __init__(self, model: str = None) -> None:
         super().__init__(model)
 
     def fetch_model(self, model: str | None = None) -> str | None:
         try:
-            list_models = openai.models.list()
+            self.list_models = openai.models.list()
         except openai.APIConnectionError:
             logger.debug(f"{self.name} is not available.")
             return None
-        return self.get_model(list_models, model, self.model)
+        return self.get_model(model)
