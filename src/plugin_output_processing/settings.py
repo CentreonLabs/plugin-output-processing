@@ -81,4 +81,3 @@ class Settings(BaseModel):
         self.model = provider.model
         self.url = provider.url
         return self
-

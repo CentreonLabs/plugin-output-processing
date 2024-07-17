@@ -46,7 +46,9 @@ class Provider:
         if model is None:
             return self.default_model
         if model not in self.list_models:
-            logger.warning(f"{model} not found in model list, using default instead.")
+            logger.warning(
+                f"{model} not found in model list with backend {self.name}, using default instead."
+            )
             return self.default_model
         return model
 
@@ -69,7 +71,7 @@ class Ollama(Provider):
             logger.debug(f"{self.name} is not available.")
             return None
         if len(self.list_models) == 0:
-            small_model = "qwen2:0.5b"
+            small_model = os.environ.get("POP_OLLAMA_DEFAULT_MODEL", "qwen2:0.5b")
             logger.warning(
                 f"{self.name} can be reached but no models found, downloading {small_model}."
             )
@@ -88,8 +90,11 @@ class OpenAI(Provider):
 
     def fetch_model(self, model: str | None = None) -> str | None:
         try:
-            self.list_models = openai.models.list()
+            self.list_models = [m.id for m in openai.models.list()]
         except openai.APIConnectionError:
             logger.debug(f"{self.name} is not available.")
+            return None
+        except openai.OpenAIError as e:
+            logger.error(e)
             return None
         return self.get_model(model)

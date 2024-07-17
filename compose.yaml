@@ -9,6 +9,7 @@ services:
       - 8000:8000
     environment:
       - POP_CONFIG_PATH=${POP_CONFIG_PATH:-/root/.pop/config.yaml}
+      - POP_OLLAMA_DEFAULT_MODEL=${POP_OLLAMA_DEFAULT_MODEL:-qwen2:0.5b}
       - OLLAMA_HOST=${OLLAMA_HOST:-ollama}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:

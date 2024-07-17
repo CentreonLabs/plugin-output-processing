@@ -52,8 +52,8 @@ Explanation given using a local model _Qwen2-0.5B_:
 ### Using docker and a local model
 
 This method does not require any API key to be set or any configuration file to be provided.
-A local model will be used to generate the explanations (Qwen2-0.5B) which can run on CPU.
-At least 1GB of RAM is required to run the container.
+A local model will be used to generate the explanations which can run on CPU.
+The default model is `Qwen2-0.5B` but can be changed with the `POP_OLLAMA_DEFAULT_MODEL` environment variable.
 
 ```bash
 git clone https://github.com/centreonlabs/plugin-output-processing.git
