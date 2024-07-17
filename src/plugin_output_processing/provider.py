@@ -64,11 +64,11 @@ class Ollama(Provider):
 
     def fetch_model(self, model: str | None = None) -> str | None:
         try:
-            models = ollama.list()["models"]
+            self.list_models = [m["name"] for m in ollama.list()["models"]]
         except ConnectError:
             logger.debug(f"{self.name} is not available.")
             return None
-        if len(models) == 0:
+        if len(self.list_models) == 0:
             small_model = "qwen2:0.5b"
             logger.warning(
                 f"{self.name} can be reached but no models found, downloading {small_model}."
@@ -76,7 +76,6 @@ class Ollama(Provider):
             logger.info("Beware, this will take some time.")
             ollama.pull(small_model)
             return small_model
-        self.list_models = [m["name"] for m in models]
         return self.get_model(model)
 
 
