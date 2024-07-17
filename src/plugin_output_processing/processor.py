@@ -128,7 +128,7 @@ class PluginProcessor:
                 # We want to make sure the configuration have the same information
                 # that is used by the application. If it's not the case, we need to
                 # update the configuration file.
-                if self.settings.to_dict() != config:
+                if self.settings.model_dump(exclude=["url"]) != config:
                     with open(path, "w") as file:
                         yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
                         logger.debug(f"Configuration updated at: {path}\n")
