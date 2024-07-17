@@ -50,14 +50,17 @@ class Provider:
             return default_model
         return model
 
+    def __init__(self, model: str = None) -> None:
+        self.model = self.fetch_model(model)
+        self.available = self.model is not None
+
 
 class Ollama(Provider):
     name = OLLAMA_NAME
     url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
 
     def __init__(self, model: str = None) -> None:
-        self.model = self.fetch_model(model)
-        self.available = self.model is not None
+        super().__init__(model)
 
     def fetch_model(self, model: str | None = None) -> str | None:
         try:
@@ -82,8 +85,7 @@ class OpenAI(Provider):
     model = "gpt-4o"
 
     def __init__(self, model: str = None) -> None:
-        self.model = self.fetch_model(model)
-        self.available = self.model is not None
+        super().__init__(model)
 
     def fetch_model(self, model: str | None = None) -> str | None:
         try:
