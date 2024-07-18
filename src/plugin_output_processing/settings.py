@@ -20,7 +20,7 @@ from typing import Literal
 from loguru import logger
 from pydantic import BaseModel, model_validator
 
-from .provider import OLLAMA_NAME, OPENAI_NAME, Ollama, OpenAI, Provider
+from .provider import OLLAMA_NAME, OPENAI_NAME, Ollama, OpenAI
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0
@@ -71,4 +71,3 @@ class Settings(BaseModel):
         msg = "None of the providers are available."
         logger.error(msg)
         raise ProviderError(msg)
-
