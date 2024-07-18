@@ -18,7 +18,11 @@ import os
 
 import ollama
 import openai
+from httpx import ConnectError
 from loguru import logger
+
+OLLAMA_NAME = "ollama"
+OPENAI_NAME = "openai"
 
 
 class ProviderError(Exception):
@@ -26,52 +30,65 @@ class ProviderError(Exception):
 
 
 class Provider:
-
     name: str
-    models: list[str] = []
-    available: bool
+    available: bool = False
     url: str = None
+    model: str
+    list_models: list[str]
+    default_model: str = None
 
-    def get_model(self, model) -> str:
-        if not model:
-            logger.warning(f"Model not set for {self.name}. Using default.")
-            model = self.default
-        if model not in self.models:
-            logger.warning(f"Model {model} not found in {self.name} models.")
-            model = self.default
+    def __init__(self, model: str = None) -> None:
+        self.model = self.fetch_model(model)
+        self.available = self.model is not None
+
+    def get_model(
+        self,
+        model: str | None = None,
+    ) -> str:
+        if self.default_model is None:
+            self.default_model = self.list_models[0]
+        if model is None:
+            return self.default_model
+        if model not in self.list_models:
+            logger.warning(
+                f"{model} not found in model list with backend {self.name}, using default instead."
+            )
+            return self.default_model
         return model
 
 
 class Ollama(Provider):
-
-    name = "ollama"
+    name = OLLAMA_NAME
     url = f"http://{os.environ.get('OLLAMA_HOST', 'localhost')}:11434"
 
-    def __init__(self) -> None:
-        self.models = self._list_models()
-        self.default = self.models[0] if self.models else None
-        self.available = self.models != []
-
-    def _list_models(self) -> list[str]:
+    def fetch_model(self, model: str | None = None) -> str | None:
         try:
-            return [model["name"] for model in ollama.list()["models"]]
-        except Exception:
-            logger.debug(f"Could not list models for {self.name}.")
-            return []
+            self.list_models = [m["name"] for m in ollama.list()["models"]]
+        except ConnectError:
+            logger.debug(f"{self.name} is not available.")
+            return None
+        if len(self.list_models) == 0:
+            small_model = os.environ.get("POP_OLLAMA_DEFAULT_MODEL", "qwen2:0.5b")
+            logger.warning(
+                f"{self.name} can be reached but no models found, downloading {small_model}."
+            )
+            logger.info("Beware, this will take some time.")
+            ollama.pull(small_model)
+            return small_model
+        return self.get_model(model)
 
 
 class OpenAI(Provider):
+    name = OPENAI_NAME
+    default_model = "gpt-4o"
 
-    name = "openai"
-    default = "gpt-4o"
-
-    def __init__(self) -> None:
-
-        self.available = "OPENAI_API_KEY" in os.environ
-        self.models = self._list_models()
-
-    def _list_models(self) -> list[str]:
-        if not self.available:
-            logger.debug("OpenAI provider not available.")
-            return []
-        return [model.id for model in openai.models.list()]
+    def fetch_model(self, model: str | None = None) -> str | None:
+        try:
+            self.list_models = [m.id for m in openai.models.list()]
+        except openai.APIConnectionError:
+            logger.debug(f"{self.name} is not available.")
+            return None
+        except openai.OpenAIError as e:
+            logger.error(e)
+            return None
+        return self.get_model(model)

@@ -14,12 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from typing import Literal
 
 from loguru import logger
 from pydantic import BaseModel, model_validator
 
-from .provider import Ollama, OpenAI
+from .provider import OLLAMA_NAME, OPENAI_NAME, Ollama, OpenAI
+
+# Disable traceback in case of error, cleaner logs especially for REST API
+sys.tracebacklimit = 0
 
 
 class ProviderError(Exception):
@@ -44,18 +48,26 @@ class Settings(BaseModel):
         and can be called, it will be used as the default provider. If not, OpenAI will
         be used if the API key is set. Otherwise, the service will not start.
         """
-        for provider in [Ollama(), OpenAI()]:
-            if self.provider and provider.name != self.provider:
-                continue
+        # Ollama must be last to be tested first (popitem in the loop)
+        providers = {OPENAI_NAME: OpenAI, OLLAMA_NAME: Ollama}
+        while providers:
+            # If a provider is defined in the configuration, we want to test it first
+            provider_fun = providers.pop(self.provider, None)
+            if provider_fun is None:
+                provider_fun = providers.popitem()[1]
+            # Only storing the class object allows to test the provider only when needed
+            provider = provider_fun(self.model)
             if provider.available:
-                self.provider = provider.name
-                self.model = provider.get_model(self.model)
-                self.url = provider.url
-                logger.debug(
-                    f"Provider set to {self.provider} with model {self.model}."
+                logger.info(
+                    f"Provider set to {provider.name} with model {provider.model}."
                 )
+                self.provider = provider.name
+                self.model = provider.model
+                self.url = provider.url
                 return self
-
-        raise ProviderError(
-            f"No models could be found with configuration: provider={self.provider}, model={self.model}"
-        )
+            logger.warning(
+                f"{provider.name} provider not available, falling back to the next one."
+            )
+        msg = "None of the providers are available."
+        logger.error(msg)
+        raise ProviderError(msg)

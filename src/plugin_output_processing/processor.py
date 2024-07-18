@@ -125,7 +125,15 @@ class PluginProcessor:
                 if not config:
                     raise FileNotFoundError
                 self.settings = Settings(**config)
-                logger.debug(f"Configuration loaded from: {path}\n")
+                # We want to make sure the configuration have the same information
+                # that is used by the application. If it's not the case, we need to
+                # update the configuration file.
+                if self.settings.model_dump(exclude=["url"]) != config:
+                    with open(path, "w") as file:
+                        yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
+                        logger.debug(f"Configuration updated at: {path}\n")
+                else:
+                    logger.debug(f"Configuration loaded from: {path}\n")
 
         except FileNotFoundError:
             with open(path, "w") as file:
