@@ -50,7 +50,7 @@ class Settings(BaseModel):
         """
         # Ollama must be last to be tested first (popitem in the loop)
         providers = {OPENAI_NAME: OpenAI, OLLAMA_NAME: Ollama}
-        while [OLLAMA_NAME, OPENAI_NAME]:
+        while providers:
             # If a provider is defined in the configuration, we want to test it first
             provider_fun = providers.pop(self.provider, None)
             if provider_fun is None:
