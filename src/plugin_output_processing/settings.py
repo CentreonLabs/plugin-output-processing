@@ -48,29 +48,26 @@ class Settings(BaseModel):
         and can be called, it will be used as the default provider. If not, OpenAI will
         be used if the API key is set. Otherwise, the service will not start.
         """
-        if self.provider == OLLAMA_NAME or self.provider is None:
-            ollama = Ollama(self.model)
-            if ollama.available:
-                return self.set_provider(ollama)
-            if self.provider is not None:
-                logger.warning(
-                    f"Ollama provider not available, falling back to {OPENAI_NAME}."
+        # Ollama must be last to be tested first (popitem in the loop)
+        providers = {OPENAI_NAME: OpenAI, OLLAMA_NAME: Ollama}
+        while [OLLAMA_NAME, OPENAI_NAME]:
+            # If a provider is defined in the configuration, we want to test it first
+            provider_fun = providers.pop(self.provider, None)
+            if provider_fun is None:
+                provider_fun = providers.popitem()[1]
+            # Only storing the class object allows to test the provider only when needed
+            provider = provider_fun(self.model)
+            if provider.available:
+                logger.info(
+                    f"Provider set to {provider.name} with model {provider.model}."
                 )
-                self.provider = None
-
-        if self.provider == OPENAI_NAME or self.provider is None:
-            openai = OpenAI(self.model)
-            if openai.available:
-                return self.set_provider(openai)
-            # If OpenAI is set in the configuration but not available, ollama would not
-            # have been tried yet. So by recursing, we can try to use ollama as a fallback.
-            if self.provider is not None:
-                logger.warning(
-                    f"OpenAI provider not available, falling back to {OLLAMA_NAME}."
-                )
-                self.provider = None
-                return self.check_model()
-
+                self.provider = provider.name
+                self.model = provider.model
+                self.url = provider.url
+                return self
+            logger.warning(
+                f"{provider.name} provider not available, falling back to the next one."
+            )
         msg = "None of the providers are available."
         logger.error(msg)
         raise ProviderError(msg)
