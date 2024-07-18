@@ -72,9 +72,3 @@ class Settings(BaseModel):
         logger.error(msg)
         raise ProviderError(msg)
 
-    def set_provider(self, provider: Provider):
-        logger.info(f"Provider set to {provider.name} with model {provider.model}.")
-        self.provider = provider.name
-        self.model = provider.model
-        self.url = provider.url
-        return self
