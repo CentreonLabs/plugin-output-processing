@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import uvicorn
 from typing import Literal
 from uuid import UUID, uuid4
 
@@ -63,3 +64,7 @@ def explain(
     uuid = uuid4()
     prompt = processor.get_prompt(type, name, output, description, uuid)
     return processor.send_prompt(prompt, uuid)
+
+
+def main():
+    uvicorn.run(app)
