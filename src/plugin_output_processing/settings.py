@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from typing import Literal
+from enum import Enum
 
 from loguru import logger
 from pydantic import (
@@ -26,7 +26,7 @@ from pydantic import (
 )
 
 from plugin_output_processing.providers import Ollama, OpenAI
-from plugin_output_processing.globals import Provider
+from plugin_output_processing.globals import Provider, Language
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0
@@ -45,13 +45,13 @@ class Settings(BaseModel):
     model: str | None = None
     temperature: float = 1
     length: int = 100
-    language: Literal["English", "French", "Italian"] = "English"
+    language: Language = Language.ENGLISH
     role: str = "You are a Centreon professional assistant."
     url: str | None = None
 
-    @field_serializer("provider")
-    def serialize_courses_in_order(self, provider: Provider | None) -> str:
-        return provider.value if isinstance(provider, Provider) else None
+    @field_serializer("provider", "language")
+    def serialize_enum(self, enum: Enum | None) -> str:
+        return enum.value if isinstance(enum, Enum) else None
 
     @field_validator("provider")
     @classmethod

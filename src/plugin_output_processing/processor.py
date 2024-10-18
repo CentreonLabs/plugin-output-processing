@@ -100,7 +100,7 @@ class PluginProcessor:
             name=name,
             description=description,
             length=self.settings.length,
-            language=self.settings.language,
+            language=self.settings.language.value,
         )
 
         self.prompts[uuid] = prompt
