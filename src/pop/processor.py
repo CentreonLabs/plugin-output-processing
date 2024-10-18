@@ -112,7 +112,7 @@ class PluginProcessor:
 
         # Default path to the root of the project if not provided.
         default_path = os.path.realpath(
-            os.path.join(os.path.dirname(__file__), "..", "..", "config.yaml")
+            os.path.join(os.path.dirname(__file__), "..", "..", "pop.yaml")
         )
         path = os.environ.get("POP_CONFIG_PATH", default_path)
 
