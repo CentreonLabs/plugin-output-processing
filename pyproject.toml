@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "plugin-output-processing"
+name = "pop"
 version = "0.1.2"
 description = "REST API taking a plugin output as request and providing an explanation of it thanks to LLMs"
 authors = ["Grégory Leventoux <gleventoux@centreon.com>", "Denis Roussel <droussel@centreon.com>"]
@@ -19,7 +19,7 @@ pyyaml      = "^6.0.0"
 uvicorn     = "^0.30.0"
 
 [tool.poetry.scripts]
-pop = "plugin_output_processing.api:main"
+pop = "pop.api:main"
 
 [build-system]
 requires = ["poetry-core"]

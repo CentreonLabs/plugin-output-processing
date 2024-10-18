@@ -25,8 +25,8 @@ from pydantic import (
     field_serializer,
 )
 
-from plugin_output_processing.providers import Ollama, OpenAI
-from plugin_output_processing.globals import Provider, Language
+from pop.providers import Ollama, OpenAI
+from pop.globals import Provider, Language
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0

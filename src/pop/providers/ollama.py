@@ -20,8 +20,8 @@ import ollama
 from httpx import ConnectError
 from loguru import logger
 
-from plugin_output_processing.globals import Provider
-from plugin_output_processing.providers.base import BaseProvider
+from pop.globals import Provider
+from pop.providers.base import BaseProvider
 
 
 class Ollama(BaseProvider):

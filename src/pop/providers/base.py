@@ -17,7 +17,7 @@
 
 from abc import ABC, abstractmethod
 
-from plugin_output_processing.globals import Provider
+from pop.globals import Provider
 
 
 class ProviderError(Exception):

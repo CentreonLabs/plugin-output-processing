@@ -22,7 +22,7 @@ from fastapi import HTTPException, status
 from litellm import completion
 from loguru import logger
 
-from .settings import Settings
+from pop.settings import Settings
 
 TEMPLATE_PROMPT = """
 Explain the following output coming from a Centreon plugin: {output}. 

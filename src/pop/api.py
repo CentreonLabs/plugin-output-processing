@@ -20,7 +20,7 @@ from uuid import UUID, uuid4
 
 from fastapi import FastAPI
 
-from .processor import PluginProcessor
+from pop.processor import PluginProcessor
 
 app = FastAPI()
 processor = PluginProcessor()
