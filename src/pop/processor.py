@@ -39,7 +39,7 @@ class PluginProcessor:
 
     def __init__(self):
 
-        self._configure()
+        self.configure()
         self.prompts = {}
 
     def send_prompt(self, prompt: str, uuid: UUID) -> str:
@@ -107,36 +107,23 @@ class PluginProcessor:
 
         return prompt
 
-    def _configure(self):
+    def configure(self):
         """Load params from config file and create one if it doesn't exists."""
 
         # Default path to the root of the project if not provided.
-        default_path = os.path.realpath(
-            os.path.join(os.path.dirname(__file__), "..", "..", "pop.yaml")
-        )
+        default_path = os.path.join(os.getcwd(), "pop.yaml")
         path = os.environ.get("POP_CONFIG_PATH", default_path)
 
         try:
             with open(path, "r") as file:
                 config = yaml.safe_load(file)
-                # If the file is empty, the yaml loader returns None.
-                # If a user create a configuration file with no content,
-                # the default settings will be used.
-                if not config:
-                    raise FileNotFoundError
-                self.settings = Settings(**config)
-                # We want to make sure the configuration have the same information
-                # that is used by the application. If it's not the case, we need to
-                # update the configuration file.
-                if self.settings.model_dump(exclude=["url"]) != config:
-                    with open(path, "w") as file:
-                        yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
-                        logger.debug(f"Configuration updated at: {path}\n")
-                else:
-                    logger.debug(f"Configuration loaded from: {path}\n")
-
+                try:
+                    self.settings = Settings(**config)
+                except Exception:
+                    self.settings = Settings()
         except FileNotFoundError:
+            self.settings = Settings()
+        finally:
             with open(path, "w") as file:
-                self.settings = Settings()
                 yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
                 logger.debug(f"Configuration created at: {path}\n")

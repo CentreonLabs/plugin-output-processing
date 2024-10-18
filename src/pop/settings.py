@@ -18,12 +18,7 @@ import sys
 from enum import Enum
 
 from loguru import logger
-from pydantic import (
-    BaseModel,
-    field_validator,
-    ValidationInfo,
-    field_serializer,
-)
+from pydantic import BaseModel, field_validator, ValidationInfo, field_serializer, Field
 
 from pop.providers import Ollama, OpenAI
 from pop.globals import Provider, Language
@@ -41,13 +36,13 @@ providers = {Provider.OPENAI: OpenAI(), Provider.OLLAMA: Ollama()}
 
 class Settings(BaseModel):
 
-    provider: Provider | None = None
-    model: str | None = None
+    provider: Provider | None = Field(default=None, validate_default=True)
+    model: str | None = Field(default=None, validate_default=True)
+    url: str | None = Field(default=None, validate_default=True)
     temperature: float = 1
     length: int = 100
     language: Language = Language.ENGLISH
     role: str = "You are a Centreon professional assistant."
-    url: str | None = None
 
     @field_serializer("provider", "language")
     def serialize_enum(self, enum: Enum | None) -> str:
