@@ -8,12 +8,16 @@ REGISTRY=centreonlabs
 TAG=$(poetry version -s)
 
 # Login to the registry
+echo
 docker login
 
 # Set the image name
 IMAGE="$REGISTRY/$PROJECT:$TAG"
 
 # Push the image
+echo
+echo -e "Pushing image \e[34m$IMAGE\e[0m ..."
+echo
 docker push $IMAGE
 
 

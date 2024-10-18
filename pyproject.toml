@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pop"
-version = "0.1.2"
+version = "0.2.0"
 description = "REST API taking a plugin output as request and providing an explanation of it thanks to LLMs"
 authors = ["Grégory Leventoux <gleventoux@centreon.com>", "Denis Roussel <droussel@centreon.com>"]
 maintainers = ["Denis Roussel <droussel@centreon.com>"]
@@ -18,8 +18,15 @@ pydantic    = "^2.8.0"
 pyyaml      = "^6.0.0"
 uvicorn     = "^0.30.0"
 
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.28.0"
+
 [tool.poetry.scripts]
 pop = "pop.api:main"
+
+[tool.poe.tasks]
+build = "bash ./scripts/build.sh"
+push = {shell = "bash ./scripts/push.sh", deps = ["build"]}
 
 [build-system]
 requires = ["poetry-core"]
