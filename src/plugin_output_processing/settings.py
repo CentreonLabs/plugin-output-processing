@@ -18,9 +18,15 @@ import sys
 from typing import Literal
 
 from loguru import logger
-from pydantic import BaseModel, model_validator
+from pydantic import (
+    BaseModel,
+    field_validator,
+    ValidationInfo,
+    field_serializer,
+)
 
-from .provider import OLLAMA_NAME, OPENAI_NAME, Ollama, OpenAI
+from plugin_output_processing.providers import Ollama, OpenAI
+from plugin_output_processing.globals import Provider
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0
@@ -30,9 +36,12 @@ class ProviderError(Exception):
     pass
 
 
+providers = {Provider.OPENAI: OpenAI(), Provider.OLLAMA: Ollama()}
+
+
 class Settings(BaseModel):
 
-    provider: Literal["openai", "ollama"] | None = None
+    provider: Provider | None = None
     model: str | None = None
     temperature: float = 1
     length: int = 100
@@ -40,34 +49,38 @@ class Settings(BaseModel):
     role: str = "You are a Centreon professional assistant."
     url: str | None = None
 
-    @model_validator(mode="after")
-    def check_model(self):
-        """Make sure all model parameters are set and valid.
+    @field_serializer("provider")
+    def serialize_courses_in_order(self, provider: Provider | None) -> str:
+        return provider.value if isinstance(provider, Provider) else None
 
-        As of today, we support 2 providers, OpenAI and Ollama. If ollama is configured
-        and can be called, it will be used as the default provider. If not, OpenAI will
-        be used if the API key is set. Otherwise, the service will not start.
-        """
-        # Ollama must be last to be tested first (popitem in the loop)
-        providers = {OPENAI_NAME: OpenAI, OLLAMA_NAME: Ollama}
-        while providers:
-            # If a provider is defined in the configuration, we want to test it first
-            provider_fun = providers.pop(self.provider, None)
-            if provider_fun is None:
-                provider_fun = providers.popitem()[1]
-            # Only storing the class object allows to test the provider only when needed
-            provider = provider_fun(self.model)
+    @field_validator("provider")
+    @classmethod
+    def check_provider(cls, name: str) -> str:
+
+        while len(providers) > 0:
+            provider = providers.pop(name, None)
+            provider = provider or providers.popitem()[1]
+            provider.fetch()
             if provider.available:
-                logger.info(
-                    f"Provider set to {provider.name} with model {provider.model}."
-                )
-                self.provider = provider.name
-                self.model = provider.model
-                self.url = provider.url
-                return self
-            logger.warning(
-                f"{provider.name} provider not available, falling back to the next one."
-            )
+                providers[Provider(value=provider.name)] = provider
+                return provider.name
+
         msg = "None of the providers are available."
         logger.error(msg)
         raise ProviderError(msg)
+
+    @field_validator("model")
+    @classmethod
+    def check_model(cls, model: str, info: ValidationInfo) -> str:
+
+        provider = providers.get(info.data["provider"])
+        if model not in provider.models:
+            model = provider.default
+        return model
+
+    @field_validator("url")
+    @classmethod
+    def set_url(cls, url: str, info: ValidationInfo) -> str:
+
+        provider = providers.get(info.data["provider"])
+        return provider.url
