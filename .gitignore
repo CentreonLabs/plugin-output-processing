@@ -1,5 +1,5 @@
 # Ignore the POP configuration file
-/config.yaml
+/pop.yaml
 
 # Ignore python cache files
 __pycache__/

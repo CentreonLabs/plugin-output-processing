@@ -39,7 +39,8 @@ class Ollama(BaseProvider):
             logger.error("Could not connect to Ollama server.")
             self.models = []
         else:
-            if len(self.models) != 0:
+            if len(self.models) == 0:
+                logger.info(f"Ollama is available but has no models.")
                 self.pull_default_model()
 
     def pull_default_model(self) -> None:
@@ -48,6 +49,7 @@ class Ollama(BaseProvider):
         """
         small_model = os.environ.get("POP_OLLAMA_DEFAULT_MODEL", "qwen2:0.5b")
         try:
+            logger.info(f"Pulling default model {small_model} ...")
             ollama.pull(small_model)
         except ConnectError:
             logger.error(f"{small_model} is not available.")
