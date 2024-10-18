@@ -12,20 +12,22 @@ ENV PYTHONFAULTHANDLER=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
 # System deps:
-# - curl: required to check ollama repository if ollama profile is used.
-RUN apt-get -y update && \
-    apt-get install -y curl jq  && \
-    pip install "poetry==$POETRY_VERSION"
+RUN pip install "poetry==$POETRY_VERSION"
+
+# Set working directory:
+WORKDIR /code
 
 # Copy only requirements to cache them in docker layer
-WORKDIR /code
-COPY poetry.lock pyproject.toml /code/
+COPY poetry.lock pyproject.toml README.md /code/
 
-# Project initialization:
-RUN poetry install --no-dev --no-interaction --no-ansi
+# Install dependencies:
+ RUN poetry install --no-root --without dev
 
-# Copy the code:
+# Copy the source code:
 COPY src/pop pop
+
+# Install project:
+RUN poetry install --without dev
 
 ENV LOGURU_LEVEL=INFO
 
@@ -36,4 +38,5 @@ COPY docker/docker_log_conf.yaml log_conf.yaml
 EXPOSE 8000
 
 # Running command:
-CMD [ "uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "pop.api:app" ]
+CMD ["poetry", "run", "pop"]
+#CMD [ "uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "pop.api:app" ]
