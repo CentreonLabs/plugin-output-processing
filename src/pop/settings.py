@@ -21,7 +21,7 @@ from enum import Enum
 from pydantic import BaseModel, field_validator, ValidationInfo, field_serializer, Field
 
 from pop.providers import Ollama, OpenAI
-from pop.globals import Provider, Language
+from pop.globals import Provider, Language, DEFAULT_ROLE
 from pop.logger import logger
 
 # Disable traceback in case of error, cleaner logs especially for REST API
@@ -43,7 +43,7 @@ class Settings(BaseModel):
     temperature: float = 1
     length: int = 100
     language: Language = Language.ENGLISH
-    role: str = "You are a Centreon professional assistant."
+    role: str = DEFAULT_ROLE
 
     @field_serializer("provider", "language")
     def serialize_enum(self, enum: Enum | None) -> str:

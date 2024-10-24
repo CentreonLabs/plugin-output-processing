@@ -24,17 +24,8 @@ from fastapi import HTTPException, status
 from litellm import completion
 
 from pop.settings import Settings, ProviderNotAvailableError
+from pop.globals import TEMPLATE_PROMPT
 from pop.logger import logger
-
-TEMPLATE_PROMPT = """
-Explain the following output coming from a Centreon plugin: {output}. 
-Here are some information about the monitored ressource,
-Type: {type}
-Name: {name}
-Description: {description}
-Describe mains reasons causing this output and suggest the better way to solve it.
-Limit your answer to {length} words and answer in {language}.
-"""
 
 
 class PluginProcessor:
