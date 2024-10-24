@@ -15,14 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 from uuid import UUID
 
+from pydantic import ValidationError
 import yaml
 from fastapi import HTTPException, status
 from litellm import completion
-from loguru import logger
 
-from pop.settings import Settings
+from pop.settings import Settings, ProviderNotAvailableError
+from pop.logger import logger
 
 TEMPLATE_PROMPT = """
 Explain the following output coming from a Centreon plugin: {output}. 
@@ -49,9 +51,8 @@ class PluginProcessor:
         provider = self.settings.provider
 
         alter = prompt != self.prompts[uuid]
-        logger.debug(
-            f"PROMPT: {prompt}, ALTER: {alter}, UUID: {uuid}, PROVIDER: {provider}, MODEL: {model}"  # noqa E501
-        )
+
+        logger.info(f"Sending prompt with UUID: {uuid} ...")
 
         try:
             response = completion(
@@ -73,17 +74,14 @@ class PluginProcessor:
             - prompt: {prompt},
             - error: {e}
             """
-
             logger.error(e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg
             )
 
-        content = response.choices[0].message.content
-
-        logger.debug(
-            f"EXPLANATION: {content}, PROVIDER: {provider}, MODEL: {model}, UUID: {uuid}"  # noqa E501
-        )
+        else:
+            logger.info(f"Received response from model {model}.")
+            content = response.choices[0].message.content
 
         return content
 
@@ -105,6 +103,8 @@ class PluginProcessor:
 
         self.prompts[uuid] = prompt
 
+        logger.info(f"Prompt created with UUID: {uuid}.")
+
         return prompt
 
     def configure(self):
@@ -114,16 +114,23 @@ class PluginProcessor:
         default_path = os.path.join(os.getcwd(), "pop.yaml")
         path = os.environ.get("POP_CONFIG_PATH", default_path)
 
-        try:
-            with open(path, "r") as file:
-                config = yaml.safe_load(file)
-                try:
-                    self.settings = Settings(**config)
-                except Exception:
-                    self.settings = Settings()
-        except FileNotFoundError:
-            self.settings = Settings()
-        finally:
-            with open(path, "w") as file:
-                yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
-                logger.debug(f"Configuration created at: {path}\n")
+        if not os.path.exists(path):
+            with open(path, "w") as f:
+                pass
+
+        with open(path, "r") as file:
+            config = yaml.safe_load(file)
+            config = config if isinstance(config, dict) else {}
+            try:
+                self.settings = Settings(**config)
+            except ValidationError as e:
+                logger.error(e)
+                sys.exit()
+            except ProviderNotAvailableError:
+                logger.error("None of the providers are available.")
+                sys.exit()
+
+        with open(path, "w") as file:
+            yaml.safe_dump(self.settings.model_dump(exclude=["url"]), file)
+
+        logger.info(f"Configuration path: {path}\n")

@@ -29,11 +29,6 @@ COPY src/pop pop
 # Install project:
 RUN poetry install --without dev
 
-ENV LOGURU_LEVEL=INFO
-
-# Copy the log configuration file:
-COPY docker/docker_log_conf.yaml log_conf.yaml
-
 # Exposing port:
 EXPOSE 8000
 

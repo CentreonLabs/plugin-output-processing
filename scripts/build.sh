@@ -8,9 +8,8 @@ REGISTRY=centreonlabs
 TAG=$(poetry version -s)
 
 # Build the image
-DOCKERFILE=docker/Dockerfile
 IMAGE="$REGISTRY/$PROJECT:$TAG"
 echo
 echo -e "Building image \e[34m$IMAGE\e[0m ..."
 echo
-docker build -t $IMAGE -f $DOCKERFILE .
+docker build -t $IMAGE .

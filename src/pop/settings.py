@@ -17,21 +17,22 @@
 import sys
 from enum import Enum
 
-from loguru import logger
+
 from pydantic import BaseModel, field_validator, ValidationInfo, field_serializer, Field
 
 from pop.providers import Ollama, OpenAI
 from pop.globals import Provider, Language
+from pop.logger import logger
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0
 
 
-class ProviderError(Exception):
-    pass
-
-
 providers = {Provider.OPENAI: OpenAI(), Provider.OLLAMA: Ollama()}
+
+
+class ProviderNotAvailableError(Exception):
+    pass
 
 
 class Settings(BaseModel):
@@ -50,19 +51,22 @@ class Settings(BaseModel):
 
     @field_validator("provider")
     @classmethod
-    def check_provider(cls, name: str) -> str:
+    def check_provider(cls, name: Provider) -> Provider:
 
         while len(providers) > 0:
             provider = providers.pop(name, None)
             provider = provider or providers.popitem()[1]
             provider.fetch()
-            if provider.available:
-                providers[Provider(value=provider.name)] = provider
-                return provider.name
+            if not provider.available:
+                logger.warning(
+                    f"{provider.name} is not available. Trying another provider."
+                )
+                continue
+            providers[Provider(value=provider.name)] = provider
+            logger.info(f"Using {provider.name} provider.")
+            return provider.name
 
-        msg = "None of the providers are available."
-        logger.error(msg)
-        raise ProviderError(msg)
+        raise ProviderNotAvailableError()
 
     @field_validator("model")
     @classmethod
@@ -70,7 +74,9 @@ class Settings(BaseModel):
 
         provider = providers.get(info.data["provider"])
         if model not in provider.models:
+            logger.warning(f"{model} is not available for {provider.name}.")
             model = provider.default
+        logger.info(f"Using {model} model.")
         return model
 
     @field_validator("url")

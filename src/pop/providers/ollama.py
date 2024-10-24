@@ -18,10 +18,10 @@ import os
 import ollama
 
 from httpx import ConnectError
-from loguru import logger
 
 from pop.globals import Provider
 from pop.providers.base import BaseProvider
+from pop.logger import logger
 
 
 class Ollama(BaseProvider):
@@ -36,11 +36,9 @@ class Ollama(BaseProvider):
         try:
             self.models = [model["name"] for model in ollama.list()["models"]]
         except ConnectError:
-            logger.error("Could not connect to Ollama server.")
             self.models = []
         else:
             if len(self.models) == 0:
-                logger.info(f"Ollama is available but has no models.")
                 self.pull_default_model()
 
     def pull_default_model(self) -> None:
@@ -49,9 +47,10 @@ class Ollama(BaseProvider):
         """
         small_model = os.environ.get("POP_OLLAMA_DEFAULT_MODEL", "qwen2:0.5b")
         try:
-            logger.info(f"Pulling default model {small_model} ...")
+            logger.info(f"No models found, pulling default model {small_model} ...")
             ollama.pull(small_model)
         except ConnectError:
-            logger.error(f"{small_model} is not available.")
+            logger.warning(f"Failed to pull default model {small_model}.")
         else:
+            logger.info(f"Model {small_model} pulled.")
             self.models.append(small_model)
