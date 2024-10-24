@@ -21,7 +21,7 @@ WORKDIR /code
 COPY poetry.lock pyproject.toml README.md /code/
 
 # Install dependencies:
- RUN poetry install --no-root --without dev
+RUN poetry install --no-root --without dev
 
 # Copy the source code:
 COPY src/pop pop
@@ -34,4 +34,4 @@ EXPOSE 8000
 
 # Running command:
 CMD ["poetry", "run", "pop"]
-#CMD [ "uvicorn", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_conf.yaml", "pop.api:app" ]
+
