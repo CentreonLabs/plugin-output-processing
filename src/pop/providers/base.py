@@ -20,10 +20,6 @@ from abc import ABC, abstractmethod
 from pop.globals import Provider
 
 
-class ProviderError(Exception):
-    pass
-
-
 class BaseProvider(ABC):
 
     def __init__(

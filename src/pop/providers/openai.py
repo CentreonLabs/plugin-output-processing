@@ -23,10 +23,13 @@ from pop.providers.base import BaseProvider
 
 class OpenAI(BaseProvider):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Provider.OPENAI, "gpt-4o")
 
-    def fetch(self):
+    def fetch(self) -> None:
+        """
+        Get available gpt models for OpenAI.
+        """
         try:
             self.models = [
                 model.id for model in openai.models.list() if "gpt" in model.id

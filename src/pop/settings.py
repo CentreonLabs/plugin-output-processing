@@ -17,8 +17,7 @@
 import sys
 from enum import Enum
 
-from pydantic import (BaseModel, Field, ValidationInfo, field_serializer,
-                      field_validator)
+from pydantic import BaseModel, Field, ValidationInfo, field_serializer, field_validator
 
 from pop.globals import DEFAULT_ROLE, Language, Provider
 from pop.logger import logger
@@ -47,12 +46,17 @@ class Settings(BaseModel):
 
     @field_serializer("provider", "language")
     def serialize_enum(self, enum: Enum | None) -> str:
+        """
+        This method is needed to write enum fields in the configuration file.
+        """
         return enum.value if isinstance(enum, Enum) else None
 
     @field_validator("provider")
     @classmethod
     def check_provider(cls, name: Provider) -> Provider:
-
+        """
+        Use the provider given by the user, if it's not available try a new one.
+        """
         while len(providers) > 0:
             provider = providers.pop(name, None)
             provider = provider or providers.popitem()[1]
@@ -71,7 +75,10 @@ class Settings(BaseModel):
     @field_validator("model")
     @classmethod
     def check_model(cls, model: str, info: ValidationInfo) -> str:
-
+        """
+        Check the model depending of those available for the selected provider.
+        If the model is not correct, use the default one.
+        """
         provider = providers.get(info.data["provider"])
         if model not in provider.models:
             logger.warning(f"{model} is not available for {provider.name}.")
@@ -82,6 +89,8 @@ class Settings(BaseModel):
     @field_validator("url")
     @classmethod
     def set_url(cls, url: str, info: ValidationInfo) -> str:
-
+        """
+        Set the url.
+        """
         provider = providers.get(info.data["provider"])
         return provider.url

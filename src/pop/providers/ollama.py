@@ -26,13 +26,17 @@ from pop.providers.base import BaseProvider
 
 class Ollama(BaseProvider):
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         host = os.environ.get("OLLAMA_HOST", "localhost")
 
         super().__init__(name=Provider.OLLAMA, url=f"http://{host}:11434")
 
-    def fetch(self):
+    def fetch(self) -> None:
+        """
+        Get available models for Ollama.
+        If Ollama is available but has no models, pull a small one.
+        """
         try:
             self.models = [model["name"] for model in ollama.list()["models"]]
         except ConnectError:
@@ -43,7 +47,7 @@ class Ollama(BaseProvider):
 
     def pull_default_model(self) -> None:
         """
-        Pull a default model if Ollama is available but no models are found.
+        Pull a small model in Ollama;
         """
         small_model = os.environ.get("POP_OLLAMA_DEFAULT_MODEL", "qwen2:0.5b")
         try:
