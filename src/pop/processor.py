@@ -16,7 +16,7 @@
 
 import os
 import sys
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import ValidationError
 import yaml
@@ -77,9 +77,11 @@ class PluginProcessor:
         return content
 
     def get_prompt(
-        self, type: str, name: str, output: str, description: str, uuid: UUID
-    ):
+        self, type: str, name: str, output: str, description: str
+    ) -> tuple[str, UUID]:
         """Convert request into a prompt."""
+
+        uuid = uuid4()
 
         logger.debug(f"TYPE: {type}, NAME: {name}, OUTPUT: {output}, UUID: {uuid}")
 
@@ -96,7 +98,7 @@ class PluginProcessor:
 
         logger.info(f"Prompt created with UUID: {uuid}.")
 
-        return prompt
+        return prompt, uuid
 
     def configure(self):
         """Load params from config file and create one if it doesn't exists."""

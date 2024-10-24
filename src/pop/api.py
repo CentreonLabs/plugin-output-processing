@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import Literal
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import FastAPI
 
@@ -37,11 +37,7 @@ def get_prompt(
     This endpoint is useful if the prompt needs to be modified by the end user before
     being sent to the LLM.
     """
-    uuid = uuid4()
-    prompt = processor.get_prompt(
-        type=type, name=name, output=output, description=description, uuid=uuid
-    )
-    return prompt, uuid
+    return processor.get_prompt(type, name, output, description)
 
 
 @app.get("/send", include_in_schema=True)
