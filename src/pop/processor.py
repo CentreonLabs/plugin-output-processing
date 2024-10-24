@@ -25,7 +25,7 @@ from pydantic import ValidationError
 
 from pop.globals import TEMPLATE_PROMPT
 from pop.logger import logger
-from pop.settings import ProviderNotAvailableError, Settings
+from pop.settings import Settings
 
 
 class PluginProcessor:
@@ -141,10 +141,7 @@ class PluginProcessor:
             try:
                 self.settings = Settings(**config)
             except ValidationError as e:
-                logger.error(e)
-                sys.exit()
-            except ProviderNotAvailableError:
-                logger.error("None of the providers are available.")
+                logger.error(e.errors()[0]["msg"])
                 sys.exit()
 
         with open(path, "w") as file:

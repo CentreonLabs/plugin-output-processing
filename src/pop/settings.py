@@ -30,10 +30,6 @@ sys.tracebacklimit = 0
 providers = {Provider.OPENAI: OpenAI(), Provider.OLLAMA: Ollama()}
 
 
-class ProviderNotAvailableError(Exception):
-    pass
-
-
 class Settings(BaseModel):
 
     provider: Provider | None = Field(default=None, validate_default=True)
@@ -70,7 +66,7 @@ class Settings(BaseModel):
             logger.info(f"Using {provider.name} provider.")
             return provider.name
 
-        raise ProviderNotAvailableError()
+        raise ValueError("None of the providers are available.")
 
     @field_validator("model")
     @classmethod
@@ -79,7 +75,9 @@ class Settings(BaseModel):
         Check the model depending of those available for the selected provider.
         If the model is not correct, use the default one.
         """
-        provider = providers.get(info.data["provider"])
+        provider = providers.get(info.data.get("provider"))
+        if provider is None:
+            raise ValueError("Provider not set")
         if model not in provider.models:
             logger.warning(f"{model} is not available for {provider.name}.")
             model = provider.default
@@ -92,5 +90,7 @@ class Settings(BaseModel):
         """
         Set the url.
         """
-        provider = providers.get(info.data["provider"])
+        provider = providers.get(info.data.get("provider"))
+        if provider is None:
+            raise ValueError("Provider not set")
         return provider.url
