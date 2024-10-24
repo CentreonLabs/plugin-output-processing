@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import uvicorn
 from typing import Literal
 from uuid import UUID, uuid4
 
@@ -64,47 +63,3 @@ def explain(
     uuid = uuid4()
     prompt = processor.get_prompt(type, name, output, description, uuid)
     return processor.send_prompt(prompt, uuid)
-
-
-def main():
-
-    log_config = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "()": "uvicorn.logging.DefaultFormatter",
-                "fmt": "%(asctime)s | %(levelprefix)s %(message)s",
-                "datefmt": "%Y-%m-%d %H:%M:%S",
-                "use_colors": None,
-            },
-            "access": {
-                "()": "uvicorn.logging.AccessFormatter",
-                "fmt": "%(asctime)s | %(levelprefix)s %(message)s",  # noqa: E501
-                "datefmt": "%Y-%m-%d %H:%M:%S",
-            },
-        },
-        "handlers": {
-            "default": {
-                "formatter": "default",
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stderr",
-            },
-            "access": {
-                "formatter": "access",
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout",
-            },
-        },
-        "loggers": {
-            "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
-            "uvicorn.error": {"level": "INFO"},
-            "uvicorn.access": {
-                "handlers": ["access"],
-                "level": "INFO",
-                "propagate": False,
-            },
-        },
-    }
-
-    uvicorn.run(app, log_config=log_config)

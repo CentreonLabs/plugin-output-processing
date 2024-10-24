@@ -21,7 +21,7 @@ uvicorn     = "^0.30.0"
 poethepoet = "^0.28.0"
 
 [tool.poetry.scripts]
-pop = "pop.api:main"
+pop = "pop:main"
 
 [tool.poe.tasks]
 build = "bash ./scripts/build.sh"
