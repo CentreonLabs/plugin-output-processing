@@ -17,12 +17,12 @@
 import sys
 from enum import Enum
 
+from pydantic import (BaseModel, Field, ValidationInfo, field_serializer,
+                      field_validator)
 
-from pydantic import BaseModel, field_validator, ValidationInfo, field_serializer, Field
-
-from pop.providers import Ollama, OpenAI
-from pop.globals import Provider, Language, DEFAULT_ROLE
+from pop.globals import DEFAULT_ROLE, Language, Provider
 from pop.logger import logger
+from pop.providers import Ollama, OpenAI
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0

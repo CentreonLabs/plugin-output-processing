@@ -15,13 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import ollama
 
+import ollama
 from httpx import ConnectError
 
 from pop.globals import Provider
-from pop.providers.base import BaseProvider
 from pop.logger import logger
+from pop.providers.base import BaseProvider
 
 
 class Ollama(BaseProvider):

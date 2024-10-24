@@ -17,7 +17,6 @@
 
 import openai
 
-
 from pop.globals import Provider
 from pop.providers.base import BaseProvider
 

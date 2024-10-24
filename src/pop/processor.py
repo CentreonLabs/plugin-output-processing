@@ -18,14 +18,14 @@ import os
 import sys
 from uuid import UUID, uuid4
 
-from pydantic import ValidationError
 import yaml
 from fastapi import HTTPException, status
 from litellm import completion
+from pydantic import ValidationError
 
-from pop.settings import Settings, ProviderNotAvailableError
 from pop.globals import TEMPLATE_PROMPT
 from pop.logger import logger
+from pop.settings import ProviderNotAvailableError, Settings
 
 
 class PluginProcessor:
