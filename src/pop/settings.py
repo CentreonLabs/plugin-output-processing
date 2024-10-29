@@ -21,13 +21,10 @@ from pydantic import BaseModel, Field, ValidationInfo, field_serializer, field_v
 
 from pop.globals import DEFAULT_ROLE, Language, Provider
 from pop.logger import logger
-from pop.providers import Ollama, OpenAI
+from pop.providers import PROVIDERS
 
 # Disable traceback in case of error, cleaner logs especially for REST API
 sys.tracebacklimit = 0
-
-
-providers = {Provider.OPENAI: OpenAI(), Provider.OLLAMA: Ollama()}
 
 
 class Settings(BaseModel):
@@ -53,16 +50,18 @@ class Settings(BaseModel):
         """
         Use the provider given by the user, if it's not available try a new one.
         """
-        while len(providers) > 0:
-            provider = providers.pop(name, None)
-            provider = provider or providers.popitem()[1]
+
+        providers = [provider for key, provider in PROVIDERS.items() if key != name]
+        if name in PROVIDERS:
+            providers.insert(0, PROVIDERS.get(name))
+
+        for provider in providers:
             provider.fetch()
             if not provider.available:
                 logger.warning(
                     f"{provider.name} is not available. Trying another provider."
                 )
                 continue
-            providers[Provider(value=provider.name)] = provider
             logger.info(f"Using {provider.name} provider.")
             return provider.name
 
@@ -75,7 +74,7 @@ class Settings(BaseModel):
         Check the model depending of those available for the selected provider.
         If the model is not correct, use the default one.
         """
-        provider = providers.get(info.data.get("provider"))
+        provider = PROVIDERS.get(info.data.get("provider"))
         if provider is None:
             raise ValueError("Provider not set")
         if model not in provider.models:
@@ -90,7 +89,7 @@ class Settings(BaseModel):
         """
         Set the url.
         """
-        provider = providers.get(info.data.get("provider"))
+        provider = PROVIDERS.get(info.data.get("provider"))
         if provider is None:
             raise ValueError("Provider not set")
         return provider.url
