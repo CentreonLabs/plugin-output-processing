@@ -131,7 +131,7 @@ class PluginProcessor:
         path = os.environ.get("POP_CONFIG_PATH", default_path)
 
         if not os.path.exists(path):
-            with open(path, "w") as f:
+            with open(path, "w"):
                 pass
 
         with open(path, "r") as file:
