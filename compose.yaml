@@ -4,7 +4,7 @@ services:
 
   api:
     container_name: api
-    image: centreonlabs/pop:0.2.0
+    image: centreonlabs/pop:${POP_VERSION:-latest}
     ports:
       - 8000:8000
     environment:

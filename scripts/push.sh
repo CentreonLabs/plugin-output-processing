@@ -12,13 +12,14 @@ echo
 docker login
 
 # Set the image name
-IMAGE="$REGISTRY/$PROJECT:$TAG"
+IMAGE="$REGISTRY/$PROJECT"
 
 # Push the image
 echo
-echo -e "Pushing image \e[34m$IMAGE\e[0m ..."
+echo -e "Pushing image \e[34m$IMAGE:$TAG (latest) \e[0m ..."
 echo
 docker push $IMAGE
+docker push "$IMAGE:$TAG"
 
 
 
