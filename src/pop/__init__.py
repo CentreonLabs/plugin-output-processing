@@ -60,4 +60,4 @@ def main():
         },
     }
 
-    uvicorn.run(app, log_config=log_config)
+    uvicorn.run(app, host="0.0.0.0" log_config=log_config)
