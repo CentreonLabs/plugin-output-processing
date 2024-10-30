@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "plugin-output-processing"
-version = "0.1.2"
+name = "pop"
+version = "0.2.0"
 description = "REST API taking a plugin output as request and providing an explanation of it thanks to LLMs"
 authors = ["Grégory Leventoux <gleventoux@centreon.com>", "Denis Roussel <droussel@centreon.com>"]
 maintainers = ["Denis Roussel <droussel@centreon.com>"]
@@ -9,14 +9,23 @@ license = "AGPL-3.0"
 
 [tool.poetry.dependencies]
 python      = "^3.10"
-fastapi     = "^0.111.0"
-litellm     = "^1.41.0"
-loguru      = "^0.7.0"
-ollama      = "^0.2.0"
+fastapi     = "^0.115.0"
+litellm     = "^1.51.0"
+ollama      = "^0.3.0"
 openai      = "^1.35.0"
 pydantic    = "^2.8.0"
 pyyaml      = "^6.0.0"
-uvicorn     = "^0.30.0"
+uvicorn     = "^0.32.0"
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.29.0"
+
+[tool.poetry.scripts]
+pop = "pop:main"
+
+[tool.poe.tasks]
+build = "bash ./scripts/build.sh"
+push = {shell = "bash ./scripts/push.sh", deps = ["build"]}
 
 [build-system]
 requires = ["poetry-core"]

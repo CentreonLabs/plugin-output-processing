@@ -4,16 +4,16 @@ services:
 
   api:
     container_name: api
-    image: centreonlabs/pop
+    image: centreonlabs/pop:${POP_VERSION:-latest}
     ports:
       - 8000:8000
     environment:
-      - POP_CONFIG_PATH=${POP_CONFIG_PATH:-/root/.pop/config.yaml}
+      - POP_CONFIG_PATH=/root/config/pop.yaml
       - POP_OLLAMA_DEFAULT_MODEL=${POP_OLLAMA_DEFAULT_MODEL:-qwen2:0.5b}
-      - OLLAMA_HOST=${OLLAMA_HOST:-ollama}
+      - OLLAMA_HOST=ollama
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      - pop:/root/.pop
+      - config:/root/config
     networks:
       - pop
     
@@ -30,7 +30,7 @@ services:
       - pop
 
 volumes:
-  pop:
+  config:
   ollama:
 
 networks:
