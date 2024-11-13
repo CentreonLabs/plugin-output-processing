@@ -14,7 +14,6 @@ echo
 # URL encode the input text
 encoded_text=$(echo -n "$input_text" | jq -s -R -r @uri)
 
-# Define the API endpoint, replacing YOUR_API_ENDPOINT with the actual endpoint
 api_endpoint="http://127.0.0.1:8000/explain"
 
 # Make the GET request
