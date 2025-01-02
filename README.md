@@ -60,7 +60,7 @@ git clone https://github.com/centreonlabs/plugin-output-processing.git
 
 cd plugin-output-processing
 
-docker compose --profile ollama up
+docker-compose --profile ollama up
 ```
 
 After the container is up, you can try the API at `http://localhost:8000/docs`.
@@ -82,7 +82,7 @@ This method requires an [OpenAI API key](https://help.openai.com/en/articles/493
 ```bash
 export OPENAI_API_KEY=...
 
-docker compose up
+docker-compose up
 ```
 
 After the container is up, you can try the API the same way as the previous section.
@@ -92,17 +92,17 @@ After the container is up, you can try the API the same way as the previous sect
 > If you want to use the OpenAI API, you must unset the `OLLAMA_HOST` if it exists and can reach an ollama instance.
 
 > [!CAUTHION]
-> If you want to switch between providers (OpenAI to Ollama or vice versa), you must change the configuration file or removing it.
+> If you want to switch between providers (OpenAI to Ollama or vice versa), you must change the configuration file or remove it.
 
 ```bash
 # Example to switch from OpenAI to Ollama
 
-docker compose down
+docker-compose down
 
 docker volume rm pop_pop
 
 # We need to recreate the network because ollama will start first.
-docker compose --profile ollama up --force-recreate
+docker-compose --profile ollama up --force-recreate
 ```
 
 ### Running the API locally
