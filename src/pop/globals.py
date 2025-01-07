@@ -47,5 +47,6 @@ TEMPLATE_PROMPT = """
     Name: {name}
     Description: {description}
     Describe mains reasons causing this output and suggest the better way to solve it.
+    Ensure your answer is clear, concise, and actionable.
     Limit your answer to {length} words and answer in {language}.
     """
