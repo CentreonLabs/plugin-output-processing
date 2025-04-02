@@ -1,0 +1,11 @@
+.venv
+.git
+.github
+.gitignore
+.mypy_cache
+.ruff_cache
+build
+neo.egg-info
+compose.yaml
+Dockerfile
+.dockerignore
