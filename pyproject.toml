@@ -1,32 +1,35 @@
-[tool.poetry]
+[project]
 name = "pop"
 version = "0.2.0"
 description = "REST API taking a plugin output as request and providing an explanation of it thanks to LLMs"
-authors = ["Grégory Leventoux <gleventoux@centreon.com>", "Denis Roussel <droussel@centreon.com>"]
-maintainers = ["Denis Roussel <droussel@centreon.com>"]
+authors = [
+    { name = "Grégory Leventoux", email = "gleventoux@centreon.com" },
+    { name = "Denis Roussel", email = "droussel@centreon.com" },
+]
+requires-python = "~=3.10"
 readme = "README.md"
 license = "AGPL-3.0"
+maintainers = [{ name = "Denis Roussel", email = "droussel@centreon.com" }]
+dependencies = [
+    "fastapi>=0.115.0,<0.116",
+    "litellm>=1.51.0,<2",
+    "ollama>=0.3.0,<0.4",
+    "openai>=1.35.0,<2",
+    "pydantic>=2.8.0,<3",
+    "pyyaml>=6.0.0,<7",
+    "uvicorn>=0.32.0,<0.33",
+]
 
-[tool.poetry.dependencies]
-python      = "^3.10"
-fastapi     = "^0.115.0"
-litellm     = "^1.51.0"
-ollama      = "^0.3.0"
-openai      = "^1.35.0"
-pydantic    = "^2.8.0"
-pyyaml      = "^6.0.0"
-uvicorn     = "^0.32.0"
-
-[tool.poetry.group.dev.dependencies]
-poethepoet = "^0.29.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 pop = "pop:main"
+
+[dependency-groups]
+dev = ["poethepoet>=0.29.0,<0.30"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.poe.tasks]
 build = "bash ./scripts/build.sh"
 push = {shell = "bash ./scripts/push.sh", deps = ["build"]}
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
